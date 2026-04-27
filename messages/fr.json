@@ -1,0 +1,213 @@
+{
+  "common": {
+    "back_home": "Retour à l'accueil",
+    "loading": "Chargement…",
+    "language": "Langue"
+  },
+  "metadata": {
+    "default_title": "EternaLink — Mémoriaux numériques avec le Psaume 119",
+    "default_description": "Un mémorial numérique respectueux relié à une plaque QR physique. Chaque page lit les versets du Psaume 119 correspondant au nom hébraïque du défunt."
+  },
+  "landing": {
+    "hero": {
+      "tagline": "EternaLink",
+      "title_line1": "Un mémorial qui lit",
+      "title_line2": "les Psaumes en votre nom.",
+      "subtitle": "Un petit code QR sur la plaque ouvre une page privée où la famille partage une biographie, des photographies et une lecture du Psaume 119 générée à partir du nom hébraïque du défunt — une section par lettre, selon la tradition.",
+      "cta_primary": "Demander un mémorial",
+      "cta_secondary": "Pourquoi le Psaume 119 ?",
+      "verse_label": "Tehilim 119:1 — Aleph"
+    },
+    "tradition": {
+      "section_label": "La tradition",
+      "title": "Vingt-deux sections, une par lettre.",
+      "p1_html": "Le Psaume 119 est le plus long chapitre de la Bible hébraïque : <strong>176 versets</strong>, divisés en 22 sections de 8 versets. Chaque section commence par une lettre successive de l'alphabet hébreu — un acrostiche étudié, chanté et récité depuis des millénaires.",
+      "p2_html": "À la mémoire d'un être cher, la tradition est de lire les sections dont les lettres initiales <em>épellent son nom hébraïque</em>, suivies des quatre sections de <span lang=\"he\" dir=\"rtl\">נשמה</span> (<em>neshamah</em>, « âme »). C'est une manière de prononcer le nom du défunt en versets sacrés.",
+      "example_label": "Exemple — pour le prénom",
+      "example_name": "Reuven",
+      "example_explanation_html": "Les carrés sombres sont les lettres dont les sections sont lues : les quatre lettres de <span lang=\"he\" dir=\"rtl\">ראובן</span> (Reuven), puis les quatre lettres de <span lang=\"he\" dir=\"rtl\">נשמה</span> (neshamah)."
+    },
+    "how_it_works": {
+      "section_label": "Comment ça marche",
+      "title": "Trois étapes. Rien d'autre à apprendre.",
+      "step1_title": "Une plaque QR gravée",
+      "step1_body": "Nous fournissons une petite plaque QR sobre, conçue pour être ajoutée à la pierre tombale ou au monument funéraire. Durable, facile à scanner.",
+      "step2_title": "Une page mémoriale privée",
+      "step2_body": "Le QR ouvre une page calme, sans publicité, gérée par la famille. Biographie, photographies, dates civile et hébraïque, et la lecture correspondante du Psaume 119.",
+      "step3_title": "À mettre à jour, pour toujours",
+      "step3_body": "Nous donnons à la famille un lien d'édition privé. Elle peut ajouter des photos et mettre à jour la biographie au fil des années. Nous restons à disposition pour toute modification du nom hébraïque."
+    },
+    "whats_on": {
+      "section_label": "Sur chaque page",
+      "title": "Tout ce qui compte, rien d'autre.",
+      "subtitle": "Pas de publicité, pas de recommandations, pas de profils associés. Chaque page est construite autour d'une seule personne, comme il se doit.",
+      "items": [
+        "Noms civil et hébraïque, avec une typographie soignée",
+        "Dates de décès en calendriers civil et hébraïque",
+        "Une biographie écrite par la famille, dans ses propres mots",
+        "Une galerie de photographies choisie par la famille",
+        "La lecture du Psaume 119, dérivée du nom hébraïque",
+        "Un lien d'édition privé réservé à la famille"
+      ]
+    },
+    "commitments": {
+      "section_label": "Nos engagements",
+      "title": "Un produit petit, soigné.",
+      "items": [
+        { "title": "Aucune publicité. Jamais.", "body": "Un mémorial n'est pas un espace marketing. Nous ne diffuserons jamais de publicité ni de contenu sponsorisé sur ces pages." },
+        { "title": "Aucun pixel de tracking.", "body": "Les visiteurs ne sont ni profilés, ni reciblés, ni vendus. La page se charge, et c'est toute la transaction." },
+        { "title": "Respect de la tradition.", "body": "Les noms hébraïques et les versets du Psaume 119 sont rendus avec soin — niqqud, te'amim, sof passuq. Nous vérifions chaque orthographe avant toute modification." },
+        { "title": "Vos données restent privées.", "body": "Les liens d'édition familiaux sont impossibles à deviner et révocables. Les pages restent non répertoriées sauf demande explicite de publication." }
+      ]
+    },
+    "contact": {
+      "section_label": "Nous contacter",
+      "title_line1": "Un mémorial pour un être cher,",
+      "title_line2": "fait avec soin.",
+      "body": "Nous travaillons avec les familles, les rabbins et les pompes funèbres. Parlez-nous brièvement de la personne dont vous souhaitez honorer la mémoire — nous nous occupons du reste : l'orthographe hébraïque, la page, la plaque QR.",
+      "email_subject": "Demande de mémorial",
+      "reply_time": "Réponse sous un jour ouvré."
+    },
+    "footer": {
+      "tagline": "Fait avec soin.",
+      "tradition_link": "La tradition",
+      "contact_link": "Contact",
+      "admin_link": "Admin"
+    }
+  },
+  "memorial": {
+    "biography_label": "Biographie",
+    "photos_label": "Photographies",
+    "psalm_label": "Lecture du Psaume 119",
+    "psalm_heading": "Tehilim · Psaume 119",
+    "verse_marker": "v.",
+    "footer_blessing": "EternaLink · זכרונו לברכה",
+    "not_found": {
+      "label": "404",
+      "title": "Mémorial introuvable",
+      "body": "Ce mémorial n'existe pas ou n'a pas encore été publié. Si vous avez scanné un QR sur une plaque, la famille prépare peut-être encore la page."
+    }
+  },
+  "family": {
+    "metadata_title": "Édition famille · EternaLink",
+    "label_family": "Édition famille",
+    "label_admin": "Édition admin",
+    "intro_family": "Toute personne ayant ce lien peut modifier le mémorial. Gardez-le privé au sein de la famille.",
+    "intro_admin": "Vous éditez en tant qu'administrateur. Le nom hébraïque est déverrouillé ici — modifiez-le avec soin, il détermine la lecture du Psaume 119.",
+    "default_name": "Mémorial",
+    "invalid_link_label": "Lien invalide",
+    "invalid_link_title": "Ce lien d'édition n'est pas valide.",
+    "invalid_link_body": "Les liens d'édition famille sont uniques et impossibles à deviner. Vérifiez l'URL, ou demandez un nouveau lien à l'administrateur.",
+    "publish_section_label": "Mémorial public",
+    "publish_published": "Publié",
+    "publish_unpublished": "Pas encore publié",
+    "view_memorial": "Voir le mémorial →",
+    "ask_admin_to_publish": "Demandez à l'administrateur de publier.",
+    "section_identity": "Identité",
+    "section_biography": "Biographie",
+    "section_add_photos": "Ajouter des photos",
+    "section_current_photos": "Photos actuelles",
+    "field_hebrew_name": "Nom hébraïque",
+    "field_hebrew_name_admin": "Nom hébraïque (admin)",
+    "field_hebrew_name_help": "Détermine la lecture du Psaume 119. Vérifiez l'orthographe avec soin.",
+    "field_hebrew_name_locked_help": "Le nom hébraïque détermine la lecture du Psaume 119. Pour le corriger, contactez-nous — nous vérifions l'orthographe avec soin avant toute modification.",
+    "field_hebrew_name_empty": "Pas encore défini — contactez-nous.",
+    "field_civil_name": "Nom civil",
+    "field_death_date": "Date de décès",
+    "field_hebrew_death_date": "Date hébraïque",
+    "biography_placeholder": "Quelques paragraphes sur votre proche — séparez les paragraphes par une ligne vide.",
+    "photos_help": "Jusqu'à 10 Mo par image. Vous pouvez en sélectionner plusieurs à la fois.",
+    "photo_too_large": "« {name} » dépasse 10 Mo ({size}). Choisissez un fichier plus léger ou compressez-le.",
+    "photos_ready_one": "1 photo prête à être envoyée ({size}).",
+    "photos_ready_many": "{count} photos prêtes à être envoyées ({size} au total).",
+    "no_photos": "Pas encore de photo. Ajoutez-en ci-dessus.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "uploading": "Envoi…",
+    "uploading_warning": "Les photos volumineuses peuvent prendre un moment. Ne fermez pas cet onglet.",
+    "saved_text_only": "Enregistré.",
+    "saved_with_photos_one": "Enregistré · 1 photo envoyée.",
+    "saved_with_photos_many": "Enregistré · {count} photos envoyées.",
+    "delete_photo": "Retirer",
+    "deleting_photo": "Retrait…"
+  },
+  "admin": {
+    "metadata_title": "Admin · EternaLink",
+    "section_label": "Admin",
+    "title": "Mémoriaux EternaLink",
+    "subtitle": "Créez de nouveaux mémoriaux et gérez la publication. Le lien d'édition familial est impossible à deviner et fait office de mot de passe — ne le partagez qu'avec la famille.",
+    "sign_out": "Se déconnecter",
+    "signing_out": "Déconnexion…",
+    "memorial_deleted": "Mémorial supprimé.",
+    "create": {
+      "title": "Nouveau mémorial",
+      "subtitle": "Génère un slug et un lien d'édition privé. Vous pourrez remplir la biographie et les photos plus tard depuis le lien famille.",
+      "civil_name": "Nom civil",
+      "civil_placeholder": "ex. Sarah Cohen",
+      "hebrew_name": "Nom hébraïque",
+      "hebrew_placeholder": "שרה בת אברהם",
+      "submit": "Créer le mémorial",
+      "creating": "Création…"
+    },
+    "created_notice": {
+      "label": "Lien d'édition famille",
+      "title": "Partagez ce lien privé avec la famille",
+      "warning": "Ce lien est l'unique moyen d'éditer le mémorial. Tout lien précédent est désormais invalide. Il n'y a pas de récupération — gardez-le en lieu sûr."
+    },
+    "list": {
+      "title": "Mémoriaux",
+      "empty": "Aucun mémorial pour l'instant. Créez le premier ci-dessus.",
+      "status_published": "Publié",
+      "status_draft": "Brouillon",
+      "slug": "Slug",
+      "created": "Créé le",
+      "public_page": "Page publique",
+      "edit_content": "Modifier le contenu",
+      "qr_code": "Code QR",
+      "publish": "Publier",
+      "publishing": "Publication…",
+      "unpublish": "Dépublier",
+      "unpublishing": "Dépublication…",
+      "new_family_link": "Nouveau lien famille",
+      "generating": "Génération…",
+      "delete": "Supprimer",
+      "deleting": "Suppression…",
+      "regenerate_confirm": "Générer un nouveau lien d'édition famille ?\n\nLe lien actuel sera immédiatement invalidé. Assurez-vous de pouvoir partager le nouveau lien avec la famille.",
+      "delete_confirm": "Supprimer définitivement « {name} » ?\n\nCette action est irréversible. La page mémoriale, le lien d'édition famille et toutes les photos seront supprimés.\n\nTapez DELETE pour confirmer :"
+    }
+  },
+  "login": {
+    "metadata_title": "Connexion admin · EternaLink",
+    "section_label": "EternaLink",
+    "title": "Connexion admin",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion…",
+    "session_note": "Les sessions durent 14 jours.",
+    "incorrect_password": "Mot de passe incorrect.",
+    "auth_misconfigured": "Authentification non configurée côté serveur."
+  },
+  "errors": {
+    "label": "Une erreur est survenue",
+    "title": "Impossible de charger cette page.",
+    "title_too_large": "Ce fichier est trop volumineux.",
+    "body_too_large": "Les photos doivent faire moins de 10 Mo. Compressez l'image (la plupart des téléphones ont un réglage intégré) puis réessayez.",
+    "fallback": "Une erreur inattendue s'est produite.",
+    "try_again": "Réessayer",
+    "reference": "Référence : {digest}"
+  },
+  "not_found": {
+    "label": "404",
+    "title": "Page introuvable"
+  },
+  "setup": {
+    "label": "Configuration requise",
+    "supabase_title": "EternaLink n'est pas encore connecté à Supabase",
+    "supabase_body": "{context} a besoin d'un projet Supabase. Suivez le guide SUPABASE_SETUP.md à la racine du dépôt, puis ajoutez les valeurs à .env.local et redémarrez le serveur de dev.",
+    "admin_password_title": "Mot de passe admin non défini",
+    "admin_password_body": "Définissez ADMIN_PASSWORD dans .env.local (voir SUPABASE_SETUP.md) puis redémarrez le serveur de dev.",
+    "context_admin": "Le tableau de bord admin",
+    "context_family": "La page d'édition famille",
+    "context_memorial": "La page mémoriale publique"
+  }
+}

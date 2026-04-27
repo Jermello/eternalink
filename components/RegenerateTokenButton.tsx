@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { regenerateTokenAction } from "@/lib/actions";
 import { SubmitButton } from "./SubmitButton";
 
@@ -10,22 +12,19 @@ import { SubmitButton } from "./SubmitButton";
  * to avoid a slip of the mouse.
  */
 export function RegenerateTokenButton({ id }: { id: string }) {
+  const t = useTranslations("admin.list");
   return (
     <form
       action={regenerateTokenAction}
       onSubmit={(e) => {
-        if (
-          !confirm(
-            "Generate a new family-edit link?\n\nThe current link will stop working immediately. Make sure you can share the new one with the family."
-          )
-        ) {
+        if (!confirm(t("regenerate_confirm"))) {
           e.preventDefault();
         }
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <SubmitButton variant="ghost" pendingLabel="Generating…">
-        New family link
+      <SubmitButton variant="ghost" pendingLabel={t("generating")}>
+        {t("new_family_link")}
       </SubmitButton>
     </form>
   );

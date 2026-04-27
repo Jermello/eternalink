@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { DeleteMemorialButton } from "@/components/DeleteMemorialButton";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { RegenerateTokenButton } from "@/components/RegenerateTokenButton";
 import { SetupNotice } from "@/components/SetupNotice";
 import { SubmitButton } from "@/components/SubmitButton";
+import { Link } from "@/i18n/navigation";
 import {
   createMemorialAction,
   logoutAction,
@@ -17,26 +19,43 @@ import { formatCivilDate, getSiteUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Admin · EternaLink",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "admin" });
+  return {
+    title: t("metadata_title"),
+    robots: { index: false, follow: false },
+  };
+}
 
-export default async function AdminPage(
-  props: PageProps<"/admin">
-) {
+export default async function AdminPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ created?: string; deleted?: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   // Defense in depth: the proxy already redirected to /admin/login when no
   // cookie is present, but we still cryptographically verify the session
   // here before rendering or running any server actions.
   await requireAdmin();
 
+  const t = await getTranslations("admin");
+  const tList = await getTranslations("admin.list");
+
   if (!isServiceRoleConfigured()) {
-    return <SetupNotice context="The admin dashboard" />;
+    return <SetupNotice contextKey="admin" />;
   }
 
-  const sp = await props.searchParams;
-  const createdToken =
-    typeof sp.created === "string" ? sp.created : undefined;
+  const sp = await searchParams;
+  const createdToken = typeof sp.created === "string" ? sp.created : undefined;
   const justDeleted = sp.deleted === "1";
 
   const memorials = await fetchAllMemorials();
@@ -47,40 +66,41 @@ export default async function AdminPage(
       <header className="mb-10 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
-            Admin
+            {t("section_label")}
           </p>
-          <h1 className="mt-1 font-serif text-3xl">EternaLink memorials</h1>
+          <h1 className="mt-1 font-serif text-3xl">{t("title")}</h1>
           <p className="mt-2 text-sm text-[color:var(--color-ink-soft)]">
-            Create new memorials and manage publication. The family-edit link
-            is unguessable and acts as the credential — share it only with
-            the family.
+            {t("subtitle")}
           </p>
         </div>
-        <form action={logoutAction} className="shrink-0">
-          <SubmitButton variant="ghost" pendingLabel="Signing out…">
-            Sign out
-          </SubmitButton>
-        </form>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <LanguageSwitcher />
+          <form action={logoutAction}>
+            <SubmitButton variant="ghost" pendingLabel={t("signing_out")}>
+              {t("sign_out")}
+            </SubmitButton>
+          </form>
+        </div>
       </header>
 
       {justDeleted ? (
         <div className="mb-8 rounded-lg border border-[color:var(--color-line)] bg-[color:var(--color-accent-soft)] p-4 text-sm text-[color:var(--color-ink)]">
-          Memorial deleted.
+          {t("memorial_deleted")}
         </div>
       ) : null}
 
       {createdToken ? (
-        <CreatedNotice token={createdToken} siteUrl={siteUrl} />
+        <CreatedNotice token={createdToken} siteUrl={siteUrl} locale={locale} />
       ) : null}
 
       <CreateMemorialForm />
 
       <section className="mt-12">
-        <h2 className="font-serif text-xl">Memorials</h2>
+        <h2 className="font-serif text-xl">{tList("title")}</h2>
 
         {memorials.length === 0 ? (
           <p className="mt-3 text-sm text-[color:var(--color-ink-soft)]">
-            No memorials yet. Create the first one above.
+            {tList("empty")}
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-[color:var(--color-line)] rounded-lg border border-[color:var(--color-line)] bg-[color:var(--color-surface)]">
@@ -95,31 +115,31 @@ export default async function AdminPage(
                     <p className="font-serif text-lg">
                       {name}{" "}
                       {m.is_published ? (
-                        <span className="ml-2 align-middle rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-800">
-                          Published
+                        <span className="ms-2 align-middle rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-800">
+                          {tList("status_published")}
                         </span>
                       ) : (
-                        <span className="ml-2 align-middle rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-amber-800">
-                          Draft
+                        <span className="ms-2 align-middle rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-amber-800">
+                          {tList("status_draft")}
                         </span>
                       )}
                     </p>
                     <p className="mt-1 text-xs text-[color:var(--color-ink-soft)]">
-                      Slug: <code>{m.slug}</code> · Created{" "}
-                      {formatCivilDate(m.created_at)}
+                      {tList("slug")}: <code>{m.slug}</code> ·{" "}
+                      {tList("created")} {formatCivilDate(m.created_at, locale)}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-3 text-sm">
                       <Link
                         href={`/m/${m.slug}`}
                         className="text-[color:var(--color-accent)] underline underline-offset-4"
                       >
-                        Public page
+                        {tList("public_page")}
                       </Link>
                       <Link
                         href={`/family/${m.family_token}`}
                         className="text-[color:var(--color-accent)] underline underline-offset-4"
                       >
-                        Edit content
+                        {tList("edit_content")}
                       </Link>
                       <a
                         href={`/api/qr/${m.slug}`}
@@ -127,7 +147,7 @@ export default async function AdminPage(
                         rel="noopener"
                         className="text-[color:var(--color-accent)] underline underline-offset-4"
                       >
-                        QR code
+                        {tList("qr_code")}
                       </a>
                     </div>
                   </div>
@@ -143,10 +163,14 @@ export default async function AdminPage(
                       <SubmitButton
                         variant="outline"
                         pendingLabel={
-                          m.is_published ? "Unpublishing…" : "Publishing…"
+                          m.is_published
+                            ? tList("unpublishing")
+                            : tList("publishing")
                         }
                       >
-                        {m.is_published ? "Unpublish" : "Publish"}
+                        {m.is_published
+                          ? tList("unpublish")
+                          : tList("publish")}
                       </SubmitButton>
                     </form>
                     <RegenerateTokenButton id={m.id} />
@@ -162,67 +186,74 @@ export default async function AdminPage(
   );
 }
 
-function CreateMemorialForm() {
+async function CreateMemorialForm() {
+  const t = await getTranslations("admin.create");
   return (
     <form
       action={createMemorialAction}
       className="rounded-lg border border-[color:var(--color-line)] bg-[color:var(--color-surface)] p-5"
     >
-      <h2 className="font-serif text-xl">New memorial</h2>
+      <h2 className="font-serif text-xl">{t("title")}</h2>
       <p className="mt-1 text-sm text-[color:var(--color-ink-soft)]">
-        Generate a slug and a private family-edit link. You can fill the
-        biography and photos later from the family link.
+        {t("subtitle")}
       </p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="text-sm text-[color:var(--color-ink-soft)]">
-            Civil name
+            {t("civil_name")}
           </span>
           <input
             name="civil_name"
-            placeholder="e.g. Sarah Cohen"
+            placeholder={t("civil_placeholder")}
             className="mt-1 w-full rounded-md border border-[color:var(--color-line)] bg-white p-2.5 text-base shadow-sm focus:border-[color:var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-accent)]"
           />
         </label>
         <label className="block">
           <span className="text-sm text-[color:var(--color-ink-soft)]">
-            Hebrew name
+            {t("hebrew_name")}
           </span>
           <input
             name="hebrew_name"
             dir="rtl"
             lang="he"
-            placeholder="שרה בת אברהם"
+            placeholder={t("hebrew_placeholder")}
             className="mt-1 w-full rounded-md border border-[color:var(--color-line)] bg-white p-2.5 font-serif text-base shadow-sm focus:border-[color:var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-accent)]"
           />
         </label>
       </div>
 
       <div className="mt-4">
-        <SubmitButton variant="primary" size="md" pendingLabel="Creating…">
-          Create memorial
+        <SubmitButton variant="primary" size="md" pendingLabel={t("creating")}>
+          {t("submit")}
         </SubmitButton>
       </div>
     </form>
   );
 }
 
-function CreatedNotice({ token, siteUrl }: { token: string; siteUrl: string }) {
-  const familyUrl = `${siteUrl}/family/${token}`;
+async function CreatedNotice({
+  token,
+  siteUrl,
+  locale,
+}: {
+  token: string;
+  siteUrl: string;
+  locale: string;
+}) {
+  const t = await getTranslations("admin.created_notice");
+  // Embed the locale in the shared family-edit URL so the recipient lands in
+  // the same language the admin was viewing in. They can switch via the
+  // language switcher once on the page if desired.
+  const familyUrl = `${siteUrl}/${locale}/family/${token}`;
   return (
     <div className="mb-8 rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
-      <p className="text-xs uppercase tracking-[0.2em]">Family edit link</p>
-      <p className="mt-1 font-serif text-lg">
-        Share this private link with the family
-      </p>
+      <p className="text-xs uppercase tracking-[0.2em]">{t("label")}</p>
+      <p className="mt-1 font-serif text-lg">{t("title")}</p>
       <code className="mt-2 block break-all rounded bg-white px-3 py-2 text-sm">
         {familyUrl}
       </code>
-      <p className="mt-2 text-xs">
-        This link is the only way to edit the memorial. Any previous link has
-        been invalidated. There is no password recovery — keep it safe.
-      </p>
+      <p className="mt-2 text-xs">{t("warning")}</p>
     </div>
   );
 }

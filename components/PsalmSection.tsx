@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { getPsalmReading, type PsalmSection } from "@/lib/psalm119";
 
 type Props = {
@@ -8,21 +10,30 @@ type Props = {
  * Renders the Psalm 119 reading derived from a Hebrew name: one block per
  * letter, in the order they appear in the name (duplicates included). If the
  * name has no Hebrew letters, the section is omitted entirely.
+ *
+ * The verses themselves are *always* in Hebrew (sacred liturgical text).
+ * Only the surrounding labels (heading, "verse N") are translated.
  */
-export function PsalmReading({ hebrewName }: Props) {
+export async function PsalmReading({ hebrewName }: Props) {
   const sections = getPsalmReading(hebrewName);
   if (!sections.length) return null;
 
+  const t = await getTranslations("memorial");
+
   return (
     <section
-      aria-label="Psalm 119 reading"
+      aria-label={t("psalm_label")}
       className="space-y-8"
       dir="rtl"
       lang="he"
     >
-      <header className="text-center" dir="ltr" lang="en">
-        <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
-          Tehillim · Psalm 119
+      <header className="text-center">
+        <p
+          className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]"
+          dir="ltr"
+          lang="en"
+        >
+          {t("psalm_heading")}
         </p>
         <h2 className="mt-2 font-serif text-2xl text-[color:var(--color-ink)]">
           {hebrewName}
@@ -31,14 +42,24 @@ export function PsalmReading({ hebrewName }: Props) {
 
       <div className="space-y-6">
         {sections.map((section, idx) => (
-          <PsalmLetterBlock key={`${section.letter}-${idx}`} section={section} />
+          <PsalmLetterBlock
+            key={`${section.letter}-${idx}`}
+            section={section}
+            verseLabel={t("verse_marker")}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function PsalmLetterBlock({ section }: { section: PsalmSection }) {
+function PsalmLetterBlock({
+  section,
+  verseLabel,
+}: {
+  section: PsalmSection;
+  verseLabel: string;
+}) {
   return (
     <article className="rounded-lg border border-[color:var(--color-line)] bg-[color:var(--color-surface)] p-6 shadow-sm">
       <div className="flex items-baseline justify-between gap-4">
@@ -48,12 +69,8 @@ function PsalmLetterBlock({ section }: { section: PsalmSection }) {
         >
           {section.letter}
         </span>
-        <span
-          className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]"
-          dir="ltr"
-          lang="en"
-        >
-          {section.letterName} · v. {section.verseStart}
+        <span className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
+          {section.letterName} · {verseLabel} {section.verseStart}
         </span>
       </div>
 

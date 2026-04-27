@@ -5,20 +5,25 @@ type Props = {
   civilName: string;
   deathDate: string | null;
   hebrewDeathDate: string;
+  locale: string;
 };
 
 /**
  * Front-matter of a memorial page: the deceased's name(s) and dates, in a
  * minimalist, gravestone-inspired layout. Mobile-first, since the QR-code
  * scan use-case dominates.
+ *
+ * `locale` is forwarded to `formatCivilDate` so the civil date shows up in
+ * the visitor's preferred language formatting.
  */
 export function MemorialHeader({
   hebrewName,
   civilName,
   deathDate,
   hebrewDeathDate,
+  locale,
 }: Props) {
-  const civilDate = formatCivilDate(deathDate);
+  const civilDate = formatCivilDate(deathDate, locale);
 
   return (
     <header className="text-center pt-12 pb-10 sm:pt-20 sm:pb-14 border-b border-[color:var(--color-line)]">

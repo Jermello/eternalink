@@ -2,6 +2,8 @@ import type { Photo } from "@/lib/supabase";
 
 type Props = {
   photos: Photo[];
+  /** Localized aria-label for the gallery section. */
+  label?: string;
 };
 
 /**
@@ -12,14 +14,14 @@ type Props = {
  * Supabase Storage and would otherwise require remotePatterns config per
  * project URL. For an MVP this is the simpler, lower-friction choice.
  */
-export function PhotoGallery({ photos }: Props) {
+export function PhotoGallery({ photos, label = "Photographs" }: Props) {
   if (!photos.length) return null;
 
   const isSingle = photos.length === 1;
 
   return (
     <section
-      aria-label="Photographs"
+      aria-label={label}
       className={`grid gap-3 ${
         isSingle ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3"
       }`}

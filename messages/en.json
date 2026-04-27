@@ -1,0 +1,213 @@
+{
+  "common": {
+    "back_home": "Back to home",
+    "loading": "Loading…",
+    "language": "Language"
+  },
+  "metadata": {
+    "default_title": "EternaLink — Digital memorials with Psalm 119",
+    "default_description": "A respectful digital memorial linked to a physical QR plaque. Each page reads the verses of Psalm 119 that match the deceased's Hebrew name."
+  },
+  "landing": {
+    "hero": {
+      "tagline": "EternaLink",
+      "title_line1": "A memorial that reads",
+      "title_line2": "Psalms in your name.",
+      "subtitle": "A small QR code on the plaque opens a private page where the family shares a biography, photographs, and a reading of Psalm 119 generated from the deceased's Hebrew name — one section per letter, in keeping with tradition.",
+      "cta_primary": "Request a memorial",
+      "cta_secondary": "Why Psalm 119?",
+      "verse_label": "Tehillim 119:1 — Aleph"
+    },
+    "tradition": {
+      "section_label": "The tradition",
+      "title": "Twenty-two sections, one for each letter.",
+      "p1_html": "Psalm 119 is the longest chapter in the Hebrew Bible: <strong>176 verses</strong>, divided into 22 sections of 8 verses each. Every section opens with a successive letter of the Hebrew alphabet — an acrostic that has been studied, sung, and recited for thousands of years.",
+      "p2_html": "In the memory of a loved one, the tradition is to read the sections whose initial letters <em>spell their Hebrew name</em>, then the four sections of <span lang=\"he\" dir=\"rtl\">נשמה</span> (<em>neshamah</em>, \"soul\"). It is a way of speaking the person's name in sacred verse.",
+      "example_label": "Example — for the name",
+      "example_name": "Reuven",
+      "example_explanation_html": "The dark squares are the letters whose sections are read aloud: the four letters of <span lang=\"he\" dir=\"rtl\">ראובן</span> (Reuven), then the four letters of <span lang=\"he\" dir=\"rtl\">נשמה</span> (neshamah)."
+    },
+    "how_it_works": {
+      "section_label": "How it works",
+      "title": "Three steps. Nothing else to learn.",
+      "step1_title": "An engraved QR plaque",
+      "step1_body": "We provide a small, dignified QR plaque designed to be added to the headstone or memorial monument. Built to last, easy to scan.",
+      "step2_title": "A private memorial page",
+      "step2_body": "The QR opens a calm, ad-free page that the family controls. Biography, photographs, both civil and Hebrew dates, and the corresponding Psalm 119 reading.",
+      "step3_title": "Yours to update, forever",
+      "step3_body": "We give the family a private edit link. They can add photos and update the biography over the years. We are here for any change to the Hebrew name itself."
+    },
+    "whats_on": {
+      "section_label": "On every page",
+      "title": "Everything that matters, nothing that doesn't.",
+      "subtitle": "No advertisements, no recommendations, no related profiles. Each page is built around one person, the way it should be.",
+      "items": [
+        "Civil and Hebrew names, displayed with proper typography",
+        "Both civil and Hebrew dates of passing",
+        "A biography written by the family, in their own words",
+        "A gallery of photographs the family chooses",
+        "The Psalm 119 reading, drawn from the Hebrew name",
+        "A private edit link reserved for the family"
+      ]
+    },
+    "commitments": {
+      "section_label": "Our commitments",
+      "title": "A small, careful product.",
+      "items": [
+        { "title": "No advertising. Ever.", "body": "A memorial is not a marketing surface. We will never run ads or sponsored content on these pages." },
+        { "title": "No tracking pixels.", "body": "Visitors are not profiled, retargeted, or sold. The page loads, and that is the entire transaction." },
+        { "title": "Respect for tradition.", "body": "Hebrew names and Psalm 119 verses are rendered with care — niqqud, te'amim, sof pasuq. We verify spellings before changing them." },
+        { "title": "Your data, kept private.", "body": "Family-edit links are unguessable and revocable. Pages are unlisted unless you ask us to publish them." }
+      ]
+    },
+    "contact": {
+      "section_label": "Get in touch",
+      "title_line1": "A memorial for a loved one,",
+      "title_line2": "made with care.",
+      "body": "We work with families, rabbis, and funeral homes. Tell us a little about who you are remembering and we'll handle the rest — the Hebrew spelling, the page, the QR plaque.",
+      "email_subject": "Memorial request",
+      "reply_time": "Replies within one business day."
+    },
+    "footer": {
+      "tagline": "Built with care.",
+      "tradition_link": "The tradition",
+      "contact_link": "Contact",
+      "admin_link": "Admin"
+    }
+  },
+  "memorial": {
+    "biography_label": "Biography",
+    "photos_label": "Photographs",
+    "psalm_label": "Psalm 119 reading",
+    "psalm_heading": "Tehillim · Psalm 119",
+    "verse_marker": "v.",
+    "footer_blessing": "EternaLink · זכרונו לברכה",
+    "not_found": {
+      "label": "404",
+      "title": "Memorial not found",
+      "body": "This memorial doesn't exist or hasn't been published yet. If you scanned a QR code from a plaque, the family may still be preparing the page."
+    }
+  },
+  "family": {
+    "metadata_title": "Family edit · EternaLink",
+    "label_family": "Family edit",
+    "label_admin": "Admin edit",
+    "intro_family": "Anyone with this link can edit the memorial. Keep it private to your family.",
+    "intro_admin": "You're editing as administrator. The Hebrew name is unlocked here — change it carefully, it drives the Psalm 119 reading.",
+    "default_name": "Memorial",
+    "invalid_link_label": "Invalid link",
+    "invalid_link_title": "This edit link is not valid.",
+    "invalid_link_body": "Family edit links are unique and unguessable. Double-check the URL, or ask the administrator for a fresh link.",
+    "publish_section_label": "Public memorial",
+    "publish_published": "Published",
+    "publish_unpublished": "Not yet published",
+    "view_memorial": "View memorial →",
+    "ask_admin_to_publish": "Ask the administrator to publish.",
+    "section_identity": "Identity",
+    "section_biography": "Biography",
+    "section_add_photos": "Add photos",
+    "section_current_photos": "Current photos",
+    "field_hebrew_name": "Hebrew name",
+    "field_hebrew_name_admin": "Hebrew name (admin-only)",
+    "field_hebrew_name_help": "Drives the Psalm 119 reading. Verify spelling carefully.",
+    "field_hebrew_name_locked_help": "The Hebrew name determines the Psalm 119 reading. To correct it, please contact us — we verify the spelling carefully before changing it.",
+    "field_hebrew_name_empty": "Not set yet — please contact us.",
+    "field_civil_name": "Civil name",
+    "field_death_date": "Date of passing",
+    "field_hebrew_death_date": "Hebrew date",
+    "biography_placeholder": "A few paragraphs about your loved one — separate paragraphs with a blank line.",
+    "photos_help": "Up to 10 MB per image. You can pick several at once.",
+    "photo_too_large": "\"{name}\" is over 10 MB ({size}). Pick a smaller file or compress it.",
+    "photos_ready_one": "1 photo ready to upload ({size}).",
+    "photos_ready_many": "{count} photos ready to upload ({size} total).",
+    "no_photos": "No photos yet. Add some above.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "uploading": "Uploading…",
+    "uploading_warning": "Large photos can take a moment. Don't close this tab.",
+    "saved_text_only": "Saved.",
+    "saved_with_photos_one": "Saved · 1 photo uploaded.",
+    "saved_with_photos_many": "Saved · {count} photos uploaded.",
+    "delete_photo": "Remove",
+    "deleting_photo": "Removing…"
+  },
+  "admin": {
+    "metadata_title": "Admin · EternaLink",
+    "section_label": "Admin",
+    "title": "EternaLink memorials",
+    "subtitle": "Create new memorials and manage publication. The family-edit link is unguessable and acts as the credential — share it only with the family.",
+    "sign_out": "Sign out",
+    "signing_out": "Signing out…",
+    "memorial_deleted": "Memorial deleted.",
+    "create": {
+      "title": "New memorial",
+      "subtitle": "Generate a slug and a private family-edit link. You can fill the biography and photos later from the family link.",
+      "civil_name": "Civil name",
+      "civil_placeholder": "e.g. Sarah Cohen",
+      "hebrew_name": "Hebrew name",
+      "hebrew_placeholder": "שרה בת אברהם",
+      "submit": "Create memorial",
+      "creating": "Creating…"
+    },
+    "created_notice": {
+      "label": "Family edit link",
+      "title": "Share this private link with the family",
+      "warning": "This link is the only way to edit the memorial. Any previous link has been invalidated. There is no password recovery — keep it safe."
+    },
+    "list": {
+      "title": "Memorials",
+      "empty": "No memorials yet. Create the first one above.",
+      "status_published": "Published",
+      "status_draft": "Draft",
+      "slug": "Slug",
+      "created": "Created",
+      "public_page": "Public page",
+      "edit_content": "Edit content",
+      "qr_code": "QR code",
+      "publish": "Publish",
+      "publishing": "Publishing…",
+      "unpublish": "Unpublish",
+      "unpublishing": "Unpublishing…",
+      "new_family_link": "New family link",
+      "generating": "Generating…",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "regenerate_confirm": "Generate a new family-edit link?\n\nThe current link will stop working immediately. Make sure you can share the new one with the family.",
+      "delete_confirm": "Permanently delete \"{name}\"?\n\nThis cannot be undone. The memorial page, the family-edit link, and all uploaded photos will be removed.\n\nType DELETE to confirm:"
+    }
+  },
+  "login": {
+    "metadata_title": "Admin sign in · EternaLink",
+    "section_label": "EternaLink",
+    "title": "Admin sign in",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "session_note": "Sessions last 14 days.",
+    "incorrect_password": "Incorrect password.",
+    "auth_misconfigured": "Auth not configured on the server."
+  },
+  "errors": {
+    "label": "Something went wrong",
+    "title": "We couldn't load this page.",
+    "title_too_large": "That file is too large.",
+    "body_too_large": "Photos must be under 10 MB. Compress the image (most phones have a built-in setting) and try again.",
+    "fallback": "An unexpected error occurred.",
+    "try_again": "Try again",
+    "reference": "Reference: {digest}"
+  },
+  "not_found": {
+    "label": "404",
+    "title": "Page not found"
+  },
+  "setup": {
+    "label": "Setup required",
+    "supabase_title": "EternaLink isn't connected to Supabase yet",
+    "supabase_body": "{context} needs a Supabase project. Follow the SUPABASE_SETUP.md guide in the repository root, then add the values to .env.local and restart the dev server.",
+    "admin_password_title": "Admin password not set",
+    "admin_password_body": "Set ADMIN_PASSWORD in .env.local (see SUPABASE_SETUP.md) and restart the dev server.",
+    "context_admin": "The admin dashboard",
+    "context_family": "The family edit page",
+    "context_memorial": "The public memorial page"
+  }
+}

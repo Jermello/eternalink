@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
 import { loginAction, type ActionResult } from "@/lib/actions";
@@ -7,6 +8,7 @@ import { loginAction, type ActionResult } from "@/lib/actions";
 const initial: ActionResult | null = null;
 
 export function LoginForm() {
+  const t = useTranslations("login");
   const [state, action, pending] = useActionState(loginAction, initial);
 
   return (
@@ -16,7 +18,7 @@ export function LoginForm() {
     >
       <label className="block">
         <span className="block text-sm text-[color:var(--color-ink-soft)]">
-          Password
+          {t("password")}
         </span>
         <input
           name="password"
@@ -37,11 +39,11 @@ export function LoginForm() {
         disabled={pending}
         className="inline-flex h-10 w-full items-center justify-center rounded-full bg-[color:var(--color-ink)] px-5 text-sm font-medium text-white transition hover:bg-[color:var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? t("submitting") : t("submit")}
       </button>
 
       <p className="text-center text-xs text-[color:var(--color-muted)]">
-        Sessions last 14 days.
+        {t("session_note")}
       </p>
     </form>
   );

@@ -67,7 +67,7 @@ export function SubmitButton({
 function Spinner() {
   return (
     <svg
-      className="mr-2 h-4 w-4 animate-spin"
+      className="me-2 h-4 w-4 animate-spin"
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"

@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
+
+import { Link } from "@/i18n/navigation";
 
 export default function GlobalError({
   error,
@@ -10,6 +12,9 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errors");
+  const tCommon = useTranslations("common");
+
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -25,35 +30,33 @@ export default function GlobalError({
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
       <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
-        Something went wrong
+        {t("label")}
       </p>
       <h1 className="font-serif text-2xl">
-        {isBodyTooLarge
-          ? "That file is too large."
-          : "We couldn\u2019t load this page."}
+        {isBodyTooLarge ? t("title_too_large") : t("title")}
       </h1>
       <p className="text-sm text-[color:var(--color-ink-soft)]">
         {isBodyTooLarge
-          ? "Photos must be under 10 MB. Compress the image (most phones have a built-in setting) and try again."
-          : error.message || "An unexpected error occurred."}
+          ? t("body_too_large")
+          : error.message || t("fallback")}
       </p>
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
         <button
           onClick={reset}
           className="inline-flex h-10 items-center rounded-full border border-[color:var(--color-ink)] px-5 text-sm font-medium hover:bg-[color:var(--color-ink)] hover:text-white"
         >
-          Try again
+          {t("try_again")}
         </button>
         <Link
           href="/"
           className="inline-flex h-10 items-center rounded-full px-5 text-sm font-medium text-[color:var(--color-ink-soft)] underline underline-offset-4 hover:text-[color:var(--color-ink)]"
         >
-          Back to home
+          {tCommon("back_home")}
         </Link>
       </div>
       {error.digest ? (
         <p className="mt-6 text-xs text-[color:var(--color-muted)]">
-          Reference: {error.digest}
+          {t("reference", { digest: error.digest })}
         </p>
       ) : null}
     </main>

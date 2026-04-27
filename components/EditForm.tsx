@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useActionState, useRef, useState } from "react";
+
+import { Link } from "@/i18n/navigation";
 
 import {
   deletePhotoAction,
@@ -33,38 +35,39 @@ const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
  * separate action because it is destructive and immediate.
  */
 export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
-  const [saveState, saveAction, savePending] = useActionState(
-    async (_prev: SaveResult | null, fd: FormData) => saveMemorialAction(fd),
-    initialSave
-  );
-
+  const t = useTranslations("family");
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Client-side preview/validation state for the staged files. We keep this
-  // in React rather than reading the file input directly so we can show
-  // validation errors instantly (before submit).
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [stagedError, setStagedError] = useState<string | null>(null);
 
-  // After a successful save, clear the file input + previews so the form
-  // is ready for the next edit. Text fields keep their values (the page
-  // re-renders with fresh data via `revalidatePath`).
-  useEffect(() => {
-    if (saveState?.ok && !savePending) {
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      setStagedFiles([]);
-      setStagedError(null);
-    }
-  }, [saveState, savePending]);
+  // The action wrapper runs inside a React transition (via useActionState),
+  // so setState calls here are batched and don't trigger the
+  // "setState in useEffect" cascade-render warning. Doing the post-success
+  // reset here also keeps the dataflow linear: submit → server → reset.
+  const [saveState, saveAction, savePending] = useActionState(
+    async (_prev: SaveResult | null, fd: FormData) => {
+      const result = await saveMemorialAction(fd);
+      if (result.ok) {
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setStagedFiles([]);
+        setStagedError(null);
+      }
+      return result;
+    },
+    initialSave
+  );
 
   function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     const tooBig = files.find((f) => f.size > MAX_PHOTO_BYTES);
     if (tooBig) {
       setStagedError(
-        `"${tooBig.name}" is over 10 MB (${formatMb(tooBig.size)}). Pick a smaller file or compress it.`
+        t("photo_too_large", {
+          name: tooBig.name,
+          size: formatMb(tooBig.size),
+        })
       );
-      // Reject the whole selection — partial accept is confusing.
       if (fileInputRef.current) fileInputRef.current.value = "";
       setStagedFiles([]);
       return;
@@ -82,36 +85,38 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
 
         {/* Identity */}
         <fieldset className="space-y-5">
-          <legend className="font-serif text-xl">Identity</legend>
+          <legend className="font-serif text-xl">
+            {t("section_identity")}
+          </legend>
 
           {isAdmin ? (
             <Field
-              label="Hebrew name (admin-only)"
+              label={t("field_hebrew_name_admin")}
               name="hebrew_name"
               defaultValue={memorial.hebrew_name}
               dir="rtl"
               lang="he"
               fontHebrew
-              help="Drives the Psalm 119 reading. Verify spelling carefully."
+              help={t("field_hebrew_name_help")}
             />
           ) : (
             <ReadOnlyHebrewName value={memorial.hebrew_name} />
           )}
           <Field
-            label="Civil name"
+            label={t("field_civil_name")}
             name="civil_name"
             defaultValue={memorial.civil_name}
           />
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field
-              label="Date of passing"
+              label={t("field_death_date")}
               name="death_date"
               type="date"
               defaultValue={memorial.death_date ?? ""}
             />
             <Field
-              label="Hebrew date"
+              label={t("field_hebrew_death_date")}
               name="hebrew_death_date"
               defaultValue={memorial.hebrew_death_date}
               dir="rtl"
@@ -123,21 +128,25 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
 
         {/* Biography */}
         <fieldset className="space-y-3">
-          <legend className="font-serif text-xl">Biography</legend>
+          <legend className="font-serif text-xl">
+            {t("section_biography")}
+          </legend>
           <textarea
             name="biography"
             rows={8}
             defaultValue={memorial.biography}
             className="w-full rounded-md border border-[color:var(--color-line)] bg-white p-3 text-base leading-relaxed shadow-sm focus:border-[color:var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-accent)]"
-            placeholder="A few paragraphs about your loved one — separate paragraphs with a blank line."
+            placeholder={t("biography_placeholder")}
           />
         </fieldset>
 
         {/* New photos */}
         <fieldset className="space-y-3">
-          <legend className="font-serif text-xl">Add photos</legend>
+          <legend className="font-serif text-xl">
+            {t("section_add_photos")}
+          </legend>
           <p className="text-sm text-[color:var(--color-ink-soft)]">
-            Up to 10 MB per image. You can pick several at once.
+            {t("photos_help")}
           </p>
           <input
             ref={fileInputRef}
@@ -146,17 +155,22 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
             accept="image/*"
             multiple
             onChange={handleFilesChange}
-            className="block w-full rounded-md border border-dashed border-[color:var(--color-line)] bg-[color:var(--color-surface)] p-3 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-[color:var(--color-accent-soft)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[color:var(--color-accent)] hover:file:bg-[color:var(--color-line)]"
+            className="block w-full rounded-md border border-dashed border-[color:var(--color-line)] bg-[color:var(--color-surface)] p-3 text-sm file:me-3 file:rounded-full file:border-0 file:bg-[color:var(--color-accent-soft)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[color:var(--color-accent)] hover:file:bg-[color:var(--color-line)]"
           />
           {stagedError ? (
             <p className="text-sm text-red-700">{stagedError}</p>
           ) : stagedFiles.length > 0 ? (
             <p className="text-sm text-[color:var(--color-ink-soft)]">
               {stagedFiles.length === 1
-                ? `1 photo ready to upload (${formatMb(stagedFiles[0].size)}).`
-                : `${stagedFiles.length} photos ready to upload (${formatMb(
-                    stagedFiles.reduce((s, f) => s + f.size, 0)
-                  )} total).`}
+                ? t("photos_ready_one", {
+                    size: formatMb(stagedFiles[0].size),
+                  })
+                : t("photos_ready_many", {
+                    count: stagedFiles.length,
+                    size: formatMb(
+                      stagedFiles.reduce((s, f) => s + f.size, 0)
+                    ),
+                  })}
             </p>
           ) : null}
         </fieldset>
@@ -171,21 +185,25 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
             {savePending ? (
               <>
                 <Spinner />
-                {stagedFiles.length > 0 ? "Uploading…" : "Saving…"}
+                {stagedFiles.length > 0 ? t("uploading") : t("saving")}
               </>
             ) : (
-              "Save changes"
+              t("save")
             )}
           </button>
           {savePending && stagedFiles.length > 0 ? (
             <span className="text-xs text-[color:var(--color-ink-soft)]">
-              Large photos can take a moment. Don&rsquo;t close this tab.
+              {t("uploading_warning")}
             </span>
           ) : saveState?.ok ? (
             <span className="text-sm text-emerald-700">
-              {saveState.photosUploaded > 0
-                ? `Saved · ${saveState.photosUploaded} photo${saveState.photosUploaded > 1 ? "s" : ""} uploaded.`
-                : "Saved."}
+              {saveState.photosUploaded === 0
+                ? t("saved_text_only")
+                : saveState.photosUploaded === 1
+                ? t("saved_with_photos_one")
+                : t("saved_with_photos_many", {
+                    count: saveState.photosUploaded,
+                  })}
             </span>
           ) : saveState && !saveState.ok ? (
             <span className="text-sm text-red-700">{saveState.error}</span>
@@ -196,7 +214,7 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
       {/* Existing photos. Lives OUTSIDE the main form so each delete can be
           its own form (HTML disallows nested forms). */}
       <section className="space-y-3">
-        <h2 className="font-serif text-xl">Current photos</h2>
+        <h2 className="font-serif text-xl">{t("section_current_photos")}</h2>
         {memorial.photos.length > 0 ? (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {memorial.photos.map((photo) => (
@@ -220,7 +238,7 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
           </ul>
         ) : (
           <p className="text-sm text-[color:var(--color-ink-soft)]">
-            No photos yet. Add some above.
+            {t("no_photos")}
           </p>
         )}
       </section>
@@ -235,15 +253,18 @@ function PublishBanner({
   memorial: MemorialWithPhotos;
   publicUrl: string;
 }) {
+  const t = useTranslations("family");
   return (
     <section className="rounded-lg border border-[color:var(--color-line)] bg-[color:var(--color-surface)] p-5">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
-            Public memorial
+            {t("publish_section_label")}
           </p>
           <p className="mt-1 font-serif text-lg">
-            {memorial.is_published ? "Published" : "Not yet published"}
+            {memorial.is_published
+              ? t("publish_published")
+              : t("publish_unpublished")}
           </p>
         </div>
         <div className="text-sm">
@@ -252,11 +273,11 @@ function PublishBanner({
               href={`/m/${memorial.slug}`}
               className="text-[color:var(--color-accent)] underline underline-offset-4"
             >
-              View memorial →
+              {t("view_memorial")}
             </Link>
           ) : (
             <span className="text-[color:var(--color-ink-soft)]">
-              Ask the administrator to publish.
+              {t("ask_admin_to_publish")}
             </span>
           )}
         </div>
@@ -275,6 +296,7 @@ function DeletePhotoButton({
   token: string;
   photoId: string;
 }) {
+  const t = useTranslations("family");
   const [, action, pending] = useActionState(
     async (_prev: ActionResult | null, fd: FormData) => deletePhotoAction(fd),
     initialDelete
@@ -291,17 +313,18 @@ function DeletePhotoButton({
         disabled={pending}
         className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-red-700 hover:bg-white"
       >
-        {pending ? "Removing…" : "Remove"}
+        {pending ? t("deleting_photo") : t("delete_photo")}
       </button>
     </form>
   );
 }
 
 function ReadOnlyHebrewName({ value }: { value: string }) {
+  const t = useTranslations("family");
   return (
     <div>
       <span className="block text-sm text-[color:var(--color-ink-soft)]">
-        Hebrew name
+        {t("field_hebrew_name")}
       </span>
       <div
         dir="rtl"
@@ -310,14 +333,12 @@ function ReadOnlyHebrewName({ value }: { value: string }) {
       >
         {value || (
           <span className="text-sm text-[color:var(--color-muted)]" dir="ltr">
-            Not set yet — please contact us.
+            {t("field_hebrew_name_empty")}
           </span>
         )}
       </div>
       <span className="mt-1 block text-xs text-[color:var(--color-muted)]">
-        The Hebrew name determines the Psalm 119 reading. To correct it,
-        please contact us — we verify the spelling carefully before changing
-        it.
+        {t("field_hebrew_name_locked_help")}
       </span>
     </div>
   );
@@ -369,7 +390,7 @@ function Field({
 function Spinner() {
   return (
     <svg
-      className="mr-2 h-4 w-4 animate-spin"
+      className="me-2 h-4 w-4 animate-spin"
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"

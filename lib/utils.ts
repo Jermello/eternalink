@@ -30,13 +30,30 @@ export function generateFamilyToken(): string {
 
 /**
  * Format a civil date for display (e.g. "12 Mar 2024"). Tolerant of
- * null/undefined/invalid input.
+ * null/undefined/invalid input. The optional `locale` parameter controls
+ * formatting — defaults to `en-GB` for backward compatibility, and we map
+ * our app locales to BCP-47 tags that the Intl API understands.
+ *
+ * Note: Yiddish (`yi`) doesn't have broad ICU coverage; we fall back to
+ * Hebrew (`he`) for date formatting since that's the closest locale with
+ * appropriate Hebrew-month presentation when applicable.
  */
-export function formatCivilDate(input: string | null | undefined): string {
+const LOCALE_TO_BCP47: Record<string, string> = {
+  en: "en-GB",
+  fr: "fr-FR",
+  he: "he-IL",
+  yi: "he-IL", // closest available; Intl has no full yi-* support
+};
+
+export function formatCivilDate(
+  input: string | null | undefined,
+  locale: string = "en"
+): string {
   if (!input) return "";
   const d = new Date(input);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", {
+  const bcp47 = LOCALE_TO_BCP47[locale] ?? "en-GB";
+  return d.toLocaleDateString(bcp47, {
     day: "numeric",
     month: "short",
     year: "numeric",

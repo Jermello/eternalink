@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import {
   ADMIN_COOKIE,
@@ -15,6 +16,17 @@ import {
 } from "./auth";
 import { getServiceSupabase, STORAGE_BUCKET } from "./supabase";
 import { generateFamilyToken, generateSlug } from "./utils";
+
+/**
+ * Build a locale-prefixed href for use with `redirect()`. We compose this
+ * helper rather than wrapping `redirect()` itself so TypeScript's control
+ * flow correctly narrows after the call (a `Promise<never>` doesn't
+ * propagate through `await` for narrowing purposes).
+ */
+async function localizedHref(href: string): Promise<string> {
+  const locale = await getLocale();
+  return `/${locale}${href}`;
+}
 
 /**
  * Server Actions for EternaLink. Every write goes through the service-role
@@ -46,15 +58,16 @@ export async function loginAction(
   _prev: ActionResult | null,
   formData: FormData
 ): Promise<ActionResult> {
+  const t = await getTranslations("login");
   const password = String(formData.get("password") ?? "");
   if (!verifyPassword(password)) {
     // Same message regardless of cause so we don't leak whether
     // ADMIN_PASSWORD is set.
-    return { ok: false, error: "Incorrect password." };
+    return { ok: false, error: t("incorrect_password") };
   }
   const value = buildSessionValue();
   if (!value) {
-    return { ok: false, error: "Auth not configured on the server." };
+    return { ok: false, error: t("auth_misconfigured") };
   }
   const jar = await cookies();
   jar.set(ADMIN_COOKIE, value, {
@@ -64,13 +77,13 @@ export async function loginAction(
     path: "/",
     maxAge: 60 * 60 * 24 * 14, // matches SESSION_TTL_MS in lib/auth.ts
   });
-  redirect("/admin");
+  redirect(await localizedHref("/admin"));
 }
 
 export async function logoutAction() {
   const jar = await cookies();
   jar.delete(ADMIN_COOKIE);
-  redirect("/admin/login");
+  redirect(await localizedHref("/admin/login"));
 }
 
 // ───────────────────────────────────────────────────────────────────
@@ -102,7 +115,7 @@ export async function createMemorialAction(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin");
-  redirect(`/admin?created=${family_token}`);
+  redirect(await localizedHref(`/admin?created=${family_token}`));
 }
 
 export async function regenerateTokenAction(formData: FormData) {
@@ -122,7 +135,7 @@ export async function regenerateTokenAction(formData: FormData) {
   revalidatePath("/admin");
   // Surface the new token via the same query param the create flow uses, so
   // the admin sees the fresh family-edit URL immediately.
-  redirect(`/admin?created=${newToken}`);
+  redirect(await localizedHref(`/admin?created=${newToken}`));
 }
 
 export async function deleteMemorialAction(formData: FormData) {
@@ -165,7 +178,7 @@ export async function deleteMemorialAction(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath(`/m/${memorial.slug}`);
-  redirect("/admin?deleted=1");
+  redirect(await localizedHref("/admin?deleted=1"));
 }
 
 export async function togglePublishAction(formData: FormData) {

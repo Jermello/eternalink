@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { deleteMemorialAction } from "@/lib/actions";
 import { SubmitButton } from "./SubmitButton";
 
@@ -15,21 +17,20 @@ export function DeleteMemorialButton({
   id: string;
   name: string;
 }) {
+  const t = useTranslations("admin.list");
   return (
     <form
       action={deleteMemorialAction}
       onSubmit={(e) => {
-        const answer = prompt(
-          `Permanently delete "${name}"?\n\nThis cannot be undone. The memorial page, the family-edit link, and all uploaded photos will be removed.\n\nType DELETE to confirm:`
-        );
+        const answer = prompt(t("delete_confirm", { name }));
         if (answer !== "DELETE") {
           e.preventDefault();
         }
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <SubmitButton variant="danger" pendingLabel="Deleting…">
-        Delete
+      <SubmitButton variant="danger" pendingLabel={t("deleting")}>
+        {t("delete")}
       </SubmitButton>
     </form>
   );
