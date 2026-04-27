@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import {
   ADMIN_COOKIE,
   buildSessionValue,
+  isAdminSession,
   requireAdmin,
   verifyPassword,
 } from "./auth";
@@ -197,19 +198,31 @@ export async function togglePublishAction(formData: FormData) {
 // Family edit (token-gated)
 // ───────────────────────────────────────────────────────────────────
 
-export async function updateMemorialAction(
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
+export type SaveResult =
+  | { ok: true; photosUploaded: number }
+  | { ok: false; error: string };
+
+/**
+ * Single save endpoint for the family/admin edit form: persists text fields
+ * and uploads any new photos in one round-trip. We chose to merge "save text"
+ * and "upload photo" because UX-wise the family expects one save button at
+ * the bottom — splitting them confused users.
+ */
+export async function saveMemorialAction(
   formData: FormData
-): Promise<ActionResult> {
+): Promise<SaveResult> {
   try {
     const sb = requireService();
     const token = String(formData.get("token") ?? "");
     if (!token) return { ok: false, error: "Missing token." };
 
-    // Note: `hebrew_name` is intentionally NOT editable here. The Hebrew name
-    // determines the Psalm 119 reading and is religiously significant — it's
-    // verified once at intake and only changed by the administrator. Even if
-    // the field were sent in the form, it would be ignored.
-    const updates = {
+    // `hebrew_name` is religiously significant (drives the Psalm 119 reading)
+    // and is verified at intake. The family form hides the field; admins
+    // editing the same form can update it — we gate that here.
+    const isAdmin = await isAdminSession();
+    const updates: Record<string, string | null> = {
       civil_name: String(formData.get("civil_name") ?? "").trim(),
       biography: String(formData.get("biography") ?? "").trim(),
       death_date: String(formData.get("death_date") ?? "").trim() || null,
@@ -217,83 +230,82 @@ export async function updateMemorialAction(
         formData.get("hebrew_death_date") ?? ""
       ).trim(),
     };
+    if (isAdmin) {
+      const hebrewName = String(formData.get("hebrew_name") ?? "").trim();
+      if (hebrewName) updates.hebrew_name = hebrewName;
+    }
 
-    const { data, error } = await sb
+    const { data: memorial, error: updateErr } = await sb
       .from("memorials")
       .update(updates)
       .eq("family_token", token)
-      .select("slug")
-      .maybeSingle();
-
-    if (error) return { ok: false, error: error.message };
-    if (!data) return { ok: false, error: "Invalid token." };
-
-    revalidatePath(`/family/${token}`);
-    revalidatePath(`/m/${data.slug}`);
-    return { ok: true };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Unknown error";
-    return { ok: false, error: msg };
-  }
-}
-
-export async function uploadPhotoAction(
-  formData: FormData
-): Promise<ActionResult> {
-  try {
-    const sb = requireService();
-    const token = String(formData.get("token") ?? "");
-    const file = formData.get("file");
-
-    if (!token) return { ok: false, error: "Missing token." };
-    if (!(file instanceof File) || file.size === 0) {
-      return { ok: false, error: "Choose an image to upload." };
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      return { ok: false, error: "Image must be under 10 MB." };
-    }
-    if (!file.type.startsWith("image/")) {
-      return { ok: false, error: "File must be an image." };
-    }
-
-    const { data: memorial, error: lookupErr } = await sb
-      .from("memorials")
       .select("id, slug")
-      .eq("family_token", token)
       .maybeSingle();
-    if (lookupErr) return { ok: false, error: lookupErr.message };
+
+    if (updateErr) return { ok: false, error: updateErr.message };
     if (!memorial) return { ok: false, error: "Invalid token." };
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const safeExt = ext.replace(/[^a-z0-9]/g, "").slice(0, 5) || "jpg";
-    const path = `${memorial.id}/${randomUUID()}.${safeExt}`;
+    // Collect any uploaded files. The form input is `multiple`, so we get an
+    // array. Empty selections are silently skipped so saving "text-only"
+    // works without users having to clear the file input.
+    const rawFiles = formData.getAll("photos");
+    const files = rawFiles.filter(
+      (f): f is File => f instanceof File && f.size > 0
+    );
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { error: uploadErr } = await sb.storage
-      .from(STORAGE_BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
-    if (uploadErr) return { ok: false, error: uploadErr.message };
+    let uploaded = 0;
+    if (files.length > 0) {
+      // Validate up-front so we don't half-upload then fail.
+      for (const file of files) {
+        if (file.size > MAX_PHOTO_BYTES) {
+          return {
+            ok: false,
+            error: `"${file.name}" is over 10 MB. Compress it and try again.`,
+          };
+        }
+        if (!file.type.startsWith("image/")) {
+          return { ok: false, error: `"${file.name}" is not an image.` };
+        }
+      }
 
-    const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      // Look up the current photo count once so positions stay sequential.
+      const { count } = await sb
+        .from("photos")
+        .select("*", { count: "exact", head: true })
+        .eq("memorial_id", memorial.id);
+      let nextPos = count ?? 0;
 
-    const { count } = await sb
-      .from("photos")
-      .select("*", { count: "exact", head: true })
-      .eq("memorial_id", memorial.id);
+      for (const file of files) {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const safeExt = ext.replace(/[^a-z0-9]/g, "").slice(0, 5) || "jpg";
+        const path = `${memorial.id}/${randomUUID()}.${safeExt}`;
 
-    const { error: insertErr } = await sb.from("photos").insert({
-      memorial_id: memorial.id,
-      image_url: pub.publicUrl,
-      position: count ?? 0,
-    });
-    if (insertErr) return { ok: false, error: insertErr.message };
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const { error: uploadErr } = await sb.storage
+          .from(STORAGE_BUCKET)
+          .upload(path, buffer, {
+            contentType: file.type,
+            upsert: false,
+          });
+        if (uploadErr) return { ok: false, error: uploadErr.message };
+
+        const { data: pub } = sb.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(path);
+
+        const { error: insertErr } = await sb.from("photos").insert({
+          memorial_id: memorial.id,
+          image_url: pub.publicUrl,
+          position: nextPos++,
+        });
+        if (insertErr) return { ok: false, error: insertErr.message };
+        uploaded++;
+      }
+    }
 
     revalidatePath(`/family/${token}`);
     revalidatePath(`/m/${memorial.slug}`);
-    return { ok: true };
+    return { ok: true, photosUploaded: uploaded };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     return { ok: false, error: msg };

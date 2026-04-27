@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { EditForm } from "@/components/EditForm";
 import { SetupNotice } from "@/components/SetupNotice";
+import { isAdminSession } from "@/lib/auth";
 import { fetchMemorialByToken } from "@/lib/queries";
 import { isServiceRoleConfigured } from "@/lib/supabase";
 import { getSiteUrl } from "@/lib/utils";
@@ -22,7 +23,10 @@ export default async function FamilyEditPage(
   }
 
   const { token } = await props.params;
-  const memorial = await fetchMemorialByToken(token);
+  const [memorial, isAdmin] = await Promise.all([
+    fetchMemorialByToken(token),
+    isAdminSession(),
+  ]);
 
   if (!memorial) {
     return (
@@ -51,18 +55,19 @@ export default async function FamilyEditPage(
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 sm:px-6 sm:py-14">
       <header className="mb-10">
         <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
-          Family edit
+          {isAdmin ? "Admin edit" : "Family edit"}
         </p>
         <h1 className="mt-1 font-serif text-3xl">
           {memorial.civil_name || memorial.hebrew_name || "Memorial"}
         </h1>
         <p className="mt-2 text-sm text-[color:var(--color-ink-soft)]">
-          Anyone with this link can edit the memorial. Keep it private to your
-          family.
+          {isAdmin
+            ? "You're editing as administrator. The Hebrew name is unlocked here — change it carefully, it drives the Psalm 119 reading."
+            : "Anyone with this link can edit the memorial. Keep it private to your family."}
         </p>
       </header>
 
-      <EditForm memorial={memorial} publicUrl={publicUrl} />
+      <EditForm memorial={memorial} publicUrl={publicUrl} isAdmin={isAdmin} />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { regenerateTokenAction } from "@/lib/actions";
+import { SubmitButton } from "./SubmitButton";
 
 /**
  * Regenerates the family-edit token for a memorial. Used when the family
@@ -23,12 +24,9 @@ export function RegenerateTokenButton({ id }: { id: string }) {
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="inline-flex h-9 items-center rounded-full border border-[color:var(--color-line)] px-4 text-xs font-medium text-[color:var(--color-ink-soft)] transition hover:border-[color:var(--color-ink)] hover:text-[color:var(--color-ink)]"
-      >
+      <SubmitButton variant="ghost" pendingLabel="Generating…">
         New family link
-      </button>
+      </SubmitButton>
     </form>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DeleteMemorialButton } from "@/components/DeleteMemorialButton";
 import { RegenerateTokenButton } from "@/components/RegenerateTokenButton";
 import { SetupNotice } from "@/components/SetupNotice";
+import { SubmitButton } from "@/components/SubmitButton";
 import {
   createMemorialAction,
   logoutAction,
@@ -56,12 +57,9 @@ export default async function AdminPage(
           </p>
         </div>
         <form action={logoutAction} className="shrink-0">
-          <button
-            type="submit"
-            className="inline-flex h-9 items-center rounded-full border border-[color:var(--color-line)] px-4 text-xs font-medium text-[color:var(--color-ink-soft)] transition hover:border-[color:var(--color-ink)] hover:text-[color:var(--color-ink)]"
-          >
+          <SubmitButton variant="ghost" pendingLabel="Signing out…">
             Sign out
-          </button>
+          </SubmitButton>
         </form>
       </header>
 
@@ -121,7 +119,7 @@ export default async function AdminPage(
                         href={`/family/${m.family_token}`}
                         className="text-[color:var(--color-accent)] underline underline-offset-4"
                       >
-                        Family edit
+                        Edit content
                       </Link>
                       <a
                         href={`/api/qr/${m.slug}`}
@@ -142,12 +140,14 @@ export default async function AdminPage(
                         name="publish"
                         value={String(!m.is_published)}
                       />
-                      <button
-                        type="submit"
-                        className="inline-flex h-9 items-center rounded-full border border-[color:var(--color-ink)] px-4 text-xs font-medium transition hover:bg-[color:var(--color-ink)] hover:text-white"
+                      <SubmitButton
+                        variant="outline"
+                        pendingLabel={
+                          m.is_published ? "Unpublishing…" : "Publishing…"
+                        }
                       >
                         {m.is_published ? "Unpublish" : "Publish"}
-                      </button>
+                      </SubmitButton>
                     </form>
                     <RegenerateTokenButton id={m.id} />
                     <DeleteMemorialButton id={m.id} name={name} />
@@ -199,12 +199,11 @@ function CreateMemorialForm() {
         </label>
       </div>
 
-      <button
-        type="submit"
-        className="mt-4 inline-flex h-10 items-center rounded-full bg-[color:var(--color-ink)] px-5 text-sm font-medium text-white transition hover:bg-[color:var(--color-accent)]"
-      >
-        Create memorial
-      </button>
+      <div className="mt-4">
+        <SubmitButton variant="primary" size="md" pendingLabel="Creating…">
+          Create memorial
+        </SubmitButton>
+      </div>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteMemorialAction } from "@/lib/actions";
+import { SubmitButton } from "./SubmitButton";
 
 /**
  * Permanently deletes a memorial — DB row + storage folder. Destructive,
@@ -27,12 +28,9 @@ export function DeleteMemorialButton({
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="inline-flex h-9 items-center rounded-full border border-red-200 px-4 text-xs font-medium text-red-700 transition hover:border-red-700 hover:bg-red-700 hover:text-white"
-      >
+      <SubmitButton variant="danger" pendingLabel="Deleting…">
         Delete
-      </button>
+      </SubmitButton>
     </form>
   );
 }
