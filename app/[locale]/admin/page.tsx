@@ -221,6 +221,21 @@ async function CreateMemorialForm() {
             className="mt-1 w-full rounded-md border border-[color:var(--color-line)] bg-white p-2.5 font-serif text-base shadow-sm focus:border-[color:var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-accent)]"
           />
         </label>
+        <label className="block sm:col-span-2">
+          <span className="text-sm text-[color:var(--color-ink-soft)]">
+            {t("hebrew_parent_name")}
+          </span>
+          <input
+            name="hebrew_parent_name"
+            dir="rtl"
+            lang="he"
+            placeholder={t("hebrew_parent_placeholder")}
+            className="mt-1 w-full rounded-md border border-[color:var(--color-line)] bg-white p-2.5 font-serif text-base shadow-sm focus:border-[color:var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-accent)]"
+          />
+          <span className="mt-1 block text-xs text-[color:var(--color-muted)]">
+            {t("hebrew_parent_help")}
+          </span>
+        </label>
       </div>
 
       <div className="mt-4">

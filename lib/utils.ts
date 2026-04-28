@@ -1,18 +1,65 @@
 import crypto from "node:crypto";
 
 /**
+ * Simplified Hebrew → Latin transliteration map. Used as a fallback when
+ * a memorial only has a Hebrew name and we still want a readable, ASCII
+ * URL slug instead of percent-encoded Hebrew. We follow common informal
+ * conventions (e.g. ע is silent, צ → tz, ש → sh) — not academic, but
+ * recognisable to a French/English reader scanning a URL. Final-form
+ * letters map to their normal-form transliteration.
+ */
+const HEBREW_TO_LATIN: Record<string, string> = {
+  "א": "a", "ב": "b", "ג": "g", "ד": "d", "ה": "h",
+  "ו": "v", "ז": "z", "ח": "ch", "ט": "t", "י": "y",
+  "כ": "k", "ך": "k",
+  "ל": "l",
+  "מ": "m", "ם": "m",
+  "נ": "n", "ן": "n",
+  "ס": "s", "ע": "",
+  "פ": "p", "ף": "p",
+  "צ": "tz", "ץ": "tz",
+  "ק": "k", "ר": "r", "ש": "sh", "ת": "t",
+};
+
+export function transliterateHebrew(input: string): string {
+  if (!input) return "";
+  // Strip niqqud / te'amim before mapping so a vowelled name still maps cleanly.
+  const stripped = input.normalize("NFKD").replace(/[\u0591-\u05C7]/g, "");
+  let out = "";
+  for (const ch of stripped) {
+    if (ch in HEBREW_TO_LATIN) {
+      out += HEBREW_TO_LATIN[ch];
+    } else if (/\s/.test(ch)) {
+      out += " ";
+    }
+  }
+  return out;
+}
+
+/**
  * Slugify a name into a URL-safe identifier and append a short random suffix
- * so collisions are vanishingly unlikely without a DB round-trip. Strips
- * Hebrew niqqud, normalises Unicode, and falls back to `memorial` if the
- * input collapses to nothing.
+ * so collisions are vanishingly unlikely without a DB round-trip.
+ *
+ * Two-stage: the caller can pass either a Latin name or a Hebrew name. We
+ * detect Hebrew-only input and transliterate it to Latin so the resulting
+ * slug stays ASCII (clean URLs, friendly when shared via SMS/WhatsApp/
+ * email). Non-Latin Unicode that isn't Hebrew (Arabic, CJK, emoji…) falls
+ * through to the random-only fallback.
  */
 export function generateSlug(name: string): string {
-  const base = (name || "")
+  const trimmed = (name || "").trim();
+  // Decide what to feed the slugifier: if the name has no Latin letters
+  // but does have Hebrew, transliterate it; otherwise use it as-is.
+  const hasLatin = /[a-zA-Z]/.test(trimmed);
+  const hasHebrew = /[\u0590-\u05FF]/.test(trimmed);
+  const sluggable =
+    hasLatin || !hasHebrew ? trimmed : transliterateHebrew(trimmed);
+
+  const base = sluggable
     .normalize("NFKD")
-    .replace(/[\u0591-\u05C7]/g, "") // Hebrew niqqud / cantillation marks
-    .replace(/[\u0300-\u036f]/g, "") // Latin diacritics
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9\u0590-\u05FF]+/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
 

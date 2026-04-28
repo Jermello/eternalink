@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { BannerEditor } from "@/components/BannerEditor";
 import { EditForm } from "@/components/EditForm";
 import { SetupNotice } from "@/components/SetupNotice";
 import { Link } from "@/i18n/navigation";
@@ -65,24 +66,35 @@ export default async function FamilyEditPage({
   }
 
   const publicUrl = `${getSiteUrl()}/${locale}/m/${memorial.slug}`;
+  const displayName =
+    memorial.civil_name || memorial.hebrew_name || t("default_name");
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10 sm:px-6 sm:py-14">
-      <header className="mb-10 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
-            {isAdmin ? t("label_admin") : t("label_family")}
-          </p>
-          <h1 className="mt-1 font-serif text-3xl">
-            {memorial.civil_name || memorial.hebrew_name || t("default_name")}
-          </h1>
-          <p className="mt-2 text-sm text-[color:var(--color-ink-soft)]">
-            {isAdmin ? t("intro_admin") : t("intro_family")}
-          </p>
-        </div>
-      </header>
+    <div className="flex w-full flex-1 flex-col">
+      <div className="mx-auto w-full max-w-2xl px-5 pt-8 sm:px-6 sm:pt-12">
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-muted)]">
+              {isAdmin ? t("label_admin") : t("label_family")}
+            </p>
+            <h1 className="mt-1 font-serif text-3xl">{displayName}</h1>
+            <p className="mt-2 text-sm text-[color:var(--color-ink-soft)]">
+              {isAdmin ? t("intro_admin") : t("intro_family")}
+            </p>
+          </div>
+        </header>
+      </div>
 
-      <EditForm memorial={memorial} publicUrl={publicUrl} isAdmin={isAdmin} />
-    </main>
+      <BannerEditor
+        token={memorial.family_token}
+        name={displayName}
+        coverUrl={memorial.cover_photo_url}
+        profileUrl={memorial.profile_photo_url}
+      />
+
+      <main className="mx-auto w-full max-w-2xl px-5 pt-8 pb-14 sm:px-6 sm:pt-12">
+        <EditForm memorial={memorial} publicUrl={publicUrl} isAdmin={isAdmin} />
+      </main>
+    </div>
   );
 }

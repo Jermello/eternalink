@@ -12,7 +12,23 @@ export default async function LandingPage({
   setRequestLocale(locale);
 
   return (
-    <main className="flex-1">
+    <main className="relative isolate flex-1">
+      {/* Page-wide background. `fixed` keeps the photo anchored to the
+          viewport on every device (Safari iOS plays nice with this,
+          unlike `bg-fixed`), giving us a parallax-ish feel as content
+          scrolls over it. Sections with their own bg color obscure it;
+          sections without let it bleed through. */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/landing.jpeg)" }}
+      />
+      {/* Light wash so the photo reads as ambience, not a busy poster. */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10 bg-[color:var(--color-bg)]/75"
+      />
+
       <Hero />
       <Tradition />
       <HowItWorks />
@@ -32,7 +48,7 @@ async function Hero() {
   const t = await getTranslations("landing.hero");
 
   return (
-    <section className="relative isolate overflow-hidden">
+    <section className="relative">
       <div className="absolute inset-x-0 top-0 z-10 mx-auto flex max-w-5xl items-center justify-end px-6 pt-5">
         <LanguageSwitcher />
       </div>
@@ -109,7 +125,7 @@ async function Tradition() {
       className="border-y border-[color:var(--color-line)] bg-[color:var(--color-accent-soft)]/30"
     >
       <div className="mx-auto max-w-3xl px-6 py-20 sm:py-28">
-        <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">
+        <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-accent)]">
           {t("section_label")}
         </p>
         <h2 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl">
@@ -173,7 +189,7 @@ async function HowItWorks() {
 
   return (
     <section className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
-      <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">
+      <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-accent)]">
         {t("section_label")}
       </p>
       <h2 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl">
@@ -211,7 +227,7 @@ async function WhatsOnAPage() {
     <section className="border-t border-[color:var(--color-line)] bg-[color:var(--color-accent-soft)]/30">
       <div className="mx-auto grid max-w-5xl gap-12 px-6 py-20 sm:grid-cols-5 sm:py-28">
         <div className="sm:col-span-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">
+          <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-accent)]">
             {t("section_label")}
           </p>
           <h2 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl">
@@ -252,7 +268,7 @@ async function Commitments() {
 
   return (
     <section className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
-      <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">
+      <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--color-accent)]">
         {t("section_label")}
       </p>
       <h2 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl">
@@ -286,8 +302,17 @@ async function Contact() {
   return (
     <section
       id="contact"
-      className="border-t border-[color:var(--color-line)] bg-[color:var(--color-ink)] text-white"
+      className="relative isolate overflow-hidden border-t border-[color:var(--color-line)] bg-[color:var(--color-ink)] text-white"
     >
+      {/* Soft sunset photo at 50% opacity over the dark base — adds warmth
+          without losing the calm, gravestone-like contrast of the section.
+          `bg-fixed` only on sm+ for the same mobile reasons as the hero. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-50 sm:bg-fixed"
+        style={{ backgroundImage: "url(/public-page.jpeg)" }}
+      />
+
       <div className="mx-auto max-w-3xl px-6 py-20 text-center sm:py-28">
         <p className="text-xs uppercase tracking-[0.3em] text-white/50">
           {t("section_label")}
@@ -322,7 +347,7 @@ async function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-3 px-6 py-10 text-xs text-[color:var(--color-muted)] sm:flex-row">
+    <footer className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-3 px-6 py-10 text-xs text-[color:var(--color-accent)] sm:flex-row">
       <p>
         © {year} EternaLink · {t("tagline")}
       </p>

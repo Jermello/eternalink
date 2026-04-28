@@ -74,11 +74,22 @@ export function getServiceSupabase(): SupabaseClient | null {
 export type Memorial = {
   id: string;
   slug: string;
+  /** First Hebrew name (e.g. רפאל). Drives the Psalm 119 reading. */
   hebrew_name: string;
+  /**
+   * Hebrew name of one parent (father or mother — gender doesn't matter
+   * for our liturgical use). Combined with `hebrew_name` to build the
+   * traditional name "<name> בן <parent>" used for the reading.
+   */
+  hebrew_parent_name: string;
   civil_name: string;
   biography: string;
   death_date: string | null;
   hebrew_death_date: string;
+  /** Full-width banner image (Facebook-style cover). Empty when unset. */
+  cover_photo_url: string;
+  /** Circular profile photo overlapping the bottom of the banner. */
+  profile_photo_url: string;
   family_token: string;
   is_published: boolean;
   created_at: string;

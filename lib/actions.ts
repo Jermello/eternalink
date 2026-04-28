@@ -96,6 +96,9 @@ export async function createMemorialAction(formData: FormData) {
 
   const civilName = String(formData.get("civil_name") ?? "").trim();
   const hebrewName = String(formData.get("hebrew_name") ?? "").trim();
+  const hebrewParentName = String(
+    formData.get("hebrew_parent_name") ?? ""
+  ).trim();
 
   if (!civilName && !hebrewName) {
     throw new Error("Provide at least a civil or Hebrew name.");
@@ -108,6 +111,7 @@ export async function createMemorialAction(formData: FormData) {
     slug,
     civil_name: civilName,
     hebrew_name: hebrewName,
+    hebrew_parent_name: hebrewParentName,
     family_token,
     is_published: false,
   });
@@ -244,8 +248,14 @@ export async function saveMemorialAction(
       ).trim(),
     };
     if (isAdmin) {
+      // Hebrew identity fields drive the Psalm 119 reading. Empty parent
+      // is intentionally accepted (admin may need to clear it); empty
+      // hebrew_name is rejected silently here so a typo can't wipe it.
       const hebrewName = String(formData.get("hebrew_name") ?? "").trim();
       if (hebrewName) updates.hebrew_name = hebrewName;
+      updates.hebrew_parent_name = String(
+        formData.get("hebrew_parent_name") ?? ""
+      ).trim();
     }
 
     const { data: memorial, error: updateErr } = await sb
@@ -325,6 +335,125 @@ export async function saveMemorialAction(
   }
 }
 
+// ───────────────────────────────────────────────────────────────────
+// Banner / profile photo (single-image fields on the memorial row)
+// ───────────────────────────────────────────────────────────────────
+
+const BANNER_KINDS = ["cover", "profile"] as const;
+type BannerKind = (typeof BANNER_KINDS)[number];
+const BANNER_COLUMN: Record<BannerKind, "cover_photo_url" | "profile_photo_url"> = {
+  cover: "cover_photo_url",
+  profile: "profile_photo_url",
+};
+
+/**
+ * Replace or remove the cover/profile photo of a memorial. Unlike the
+ * gallery, these are single-image fields stored directly on the memorial
+ * row, so we upload to a deterministic-but-unique path
+ * (`<id>/<kind>-<timestamp>.jpg`) and rewrite the URL column. The previous
+ * file is removed best-effort to keep storage tidy.
+ */
+export async function updateBannerAction(
+  formData: FormData
+): Promise<ActionResult> {
+  try {
+    const sb = requireService();
+    const token = String(formData.get("token") ?? "");
+    const kindRaw = String(formData.get("kind") ?? "");
+    const remove = formData.get("remove") === "true";
+    if (!token) return { ok: false, error: "Missing token." };
+    if (!BANNER_KINDS.includes(kindRaw as BannerKind)) {
+      return { ok: false, error: "Invalid banner kind." };
+    }
+    const kind = kindRaw as BannerKind;
+    const column = BANNER_COLUMN[kind];
+
+    const { data: memorial } = await sb
+      .from("memorials")
+      .select(`id, slug, ${column}`)
+      .eq("family_token", token)
+      .maybeSingle<{ id: string; slug: string } & Record<string, string>>();
+    if (!memorial) return { ok: false, error: "Invalid token." };
+
+    const previousUrl = memorial[column] ?? "";
+
+    // Always best-effort clean up the previous object first so we don't
+    // leave orphans in storage when the URL flips.
+    async function removePrevious() {
+      if (!previousUrl) return;
+      const marker = `/object/public/${STORAGE_BUCKET}/`;
+      const i = previousUrl.indexOf(marker);
+      if (i < 0) return;
+      const path = previousUrl.slice(i + marker.length);
+      await sb.storage.from(STORAGE_BUCKET).remove([path]);
+    }
+
+    if (remove) {
+      await removePrevious();
+      const { error } = await sb
+        .from("memorials")
+        .update({ [column]: "" })
+        .eq("id", memorial.id);
+      if (error) return { ok: false, error: error.message };
+      revalidatePath(`/family/${token}`);
+      revalidatePath(`/m/${memorial.slug}`);
+      return { ok: true };
+    }
+
+    // Replace flow.
+    const file = formData.get("photo");
+    if (!(file instanceof File) || file.size === 0) {
+      return { ok: false, error: "No file provided." };
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      return { ok: false, error: `File is over 10 MB.` };
+    }
+    if (!file.type.startsWith("image/")) {
+      return { ok: false, error: "File is not an image." };
+    }
+
+    const ext = (file.name.split(".").pop() || "jpg")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 5) || "jpg";
+    // Timestamp keeps each upload unique (cheap cache-bust) and prevents
+    // colliding with the previous file before we delete it.
+    const path = `${memorial.id}/${kind}-${Date.now()}.${ext}`;
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const { error: uploadErr } = await sb.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+    if (uploadErr) return { ok: false, error: uploadErr.message };
+
+    const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+
+    const { error: updateErr } = await sb
+      .from("memorials")
+      .update({ [column]: pub.publicUrl })
+      .eq("id", memorial.id);
+    if (updateErr) {
+      // Try to roll back the storage upload so we don't strand the file.
+      await sb.storage.from(STORAGE_BUCKET).remove([path]);
+      return { ok: false, error: updateErr.message };
+    }
+
+    // Only remove the previous object after we've successfully committed
+    // the new URL — avoids a window where the row points at a deleted file.
+    await removePrevious();
+
+    revalidatePath(`/family/${token}`);
+    revalidatePath(`/m/${memorial.slug}`);
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return { ok: false, error: msg };
+  }
+}
+
 export async function deletePhotoAction(
   formData: FormData
 ): Promise<ActionResult> {
@@ -365,6 +494,60 @@ export async function deletePhotoAction(
       .delete()
       .eq("id", photoId);
     if (delErr) return { ok: false, error: delErr.message };
+
+    revalidatePath(`/family/${token}`);
+    revalidatePath(`/m/${memorial.slug}`);
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Reorder photos for a memorial. The client sends the desired order as a
+ * JSON array of photo IDs (top-of-form). We map each ID to a 0-based
+ * position, scoping every update to the memorial via the family token so
+ * one family can't reorder another's photos.
+ */
+export async function reorderPhotosAction(
+  formData: FormData
+): Promise<ActionResult> {
+  try {
+    const sb = requireService();
+    const token = String(formData.get("token") ?? "");
+    const orderJson = String(formData.get("order") ?? "");
+    if (!token || !orderJson) {
+      return { ok: false, error: "Missing parameters." };
+    }
+
+    let ids: string[];
+    try {
+      const parsed = JSON.parse(orderJson);
+      if (!Array.isArray(parsed)) throw new Error("not array");
+      ids = parsed.map(String);
+    } catch {
+      return { ok: false, error: "Invalid order payload." };
+    }
+
+    const { data: memorial } = await sb
+      .from("memorials")
+      .select("id, slug")
+      .eq("family_token", token)
+      .maybeSingle();
+    if (!memorial) return { ok: false, error: "Invalid token." };
+
+    // Update each photo's position. We scope by memorial_id so a token can
+    // only reorder its own photos — even if a malicious client smuggles
+    // foreign IDs into the array, those rows won't match the eq().
+    for (let i = 0; i < ids.length; i++) {
+      const { error } = await sb
+        .from("photos")
+        .update({ position: i })
+        .eq("id", ids[i])
+        .eq("memorial_id", memorial.id);
+      if (error) return { ok: false, error: error.message };
+    }
 
     revalidatePath(`/family/${token}`);
     revalidatePath(`/m/${memorial.slug}`);

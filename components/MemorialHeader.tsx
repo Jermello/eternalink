@@ -30,6 +30,7 @@ export function MemorialHeader({
       {hebrewName ? (
         <h1
           lang="he"
+          dir="rtl"
           className="font-serif text-4xl sm:text-5xl leading-tight tracking-tight text-[color:var(--color-ink)]"
         >
           {hebrewName}

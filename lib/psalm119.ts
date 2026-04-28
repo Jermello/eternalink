@@ -406,3 +406,117 @@ export function extractHebrewLetters(name: string): HebrewLetter[] {
 export function getPsalmReading(hebrewName: string): PsalmSection[] {
   return extractHebrewLetters(hebrewName).map((letter) => PSALM_119[letter]);
 }
+
+/** Connector ("son of") used between the deceased's and the parent's name. */
+export const HEBREW_BEN = "בן";
+/** "Soul" — its four letters close every traditional reading. */
+export const HEBREW_NESHAMAH = "נשמה";
+
+/**
+ * Build the full liturgical name used to derive the Psalm 119 reading,
+ * following the tradition of reciting the letters of:
+ *
+ *   <hebrewName> בן <hebrewParentName> נשמה
+ *
+ *  - We always use בן ("son of") regardless of the deceased's actual
+ *    gender. Tracking gender purely to switch בן/בת would add a field
+ *    families have to set correctly under stress, with no liturgical
+ *    benefit for our common case. If a customer ever needs בת, we can
+ *    promote this to a configurable.
+ *  - נשמה is appended automatically when there is at least a name; its
+ *    four letters constitute the closing reading.
+ *  - With both fields empty we return "" so callers can hide the section
+ *    cleanly.
+ */
+export function buildLiturgicalName({
+  hebrewName,
+  hebrewParentName,
+}: {
+  hebrewName: string;
+  hebrewParentName?: string;
+}): string {
+  const name = (hebrewName ?? "").trim();
+  const parent = (hebrewParentName ?? "").trim();
+  if (!name) return "";
+  const parts: string[] = [name];
+  if (parent) parts.push(HEBREW_BEN, parent);
+  parts.push(HEBREW_NESHAMAH);
+  return parts.join(" ");
+}
+
+/**
+ * Build the prayer-name shown in headings (the person being prayed for):
+ * "<name>" or "<name> בן <parent>". Unlike `buildLiturgicalName`, this
+ * does NOT include נשמה — neshamah is the closing reading, not part of
+ * the person's identity.
+ */
+export function buildPrayerName({
+  hebrewName,
+  hebrewParentName,
+}: {
+  hebrewName: string;
+  hebrewParentName?: string;
+}): string {
+  const name = (hebrewName ?? "").trim();
+  const parent = (hebrewParentName ?? "").trim();
+  if (!name) return "";
+  return parent ? `${name} ${HEBREW_BEN} ${parent}` : name;
+}
+
+/**
+ * One coherent block of the reading (e.g. all the sections for the
+ * letters of "רפאל", or for "נשמה"). Used by the public page to render a
+ * sub-header above each block so visitors can see *which* word's letters
+ * they are currently reading — important once name + parent + נשמה
+ * stack up to 13+ sections.
+ */
+export type LiturgicalSegment = {
+  /** Hebrew text of this segment, displayed as the sub-header. */
+  text: string;
+  /**
+   * Stable, ascii-friendly key for React lists. Doesn't have to be human
+   * readable — just unique within the segments array.
+   */
+  key: string;
+  sections: PsalmSection[];
+};
+
+/**
+ * Build the ordered list of segments to display. Each segment carries
+ * its own header text so the renderer doesn't need to know about
+ * tradition rules. We skip empty segments (e.g. parent name absent) so
+ * the consumer never has to filter.
+ */
+export function getLiturgicalSegments({
+  hebrewName,
+  hebrewParentName,
+}: {
+  hebrewName: string;
+  hebrewParentName?: string;
+}): LiturgicalSegment[] {
+  const name = (hebrewName ?? "").trim();
+  const parent = (hebrewParentName ?? "").trim();
+  if (!name) return [];
+
+  const segments: LiturgicalSegment[] = [
+    { key: "name", text: name, sections: getPsalmReading(name) },
+  ];
+  if (parent) {
+    segments.push({
+      key: "ben",
+      text: HEBREW_BEN,
+      sections: getPsalmReading(HEBREW_BEN),
+    });
+    segments.push({
+      key: "parent",
+      text: parent,
+      sections: getPsalmReading(parent),
+    });
+  }
+  segments.push({
+    key: "neshamah",
+    text: HEBREW_NESHAMAH,
+    sections: getPsalmReading(HEBREW_NESHAMAH),
+  });
+  return segments.filter((s) => s.sections.length > 0);
+}

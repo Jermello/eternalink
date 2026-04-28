@@ -63,14 +63,24 @@ create table if not exists public.memorials (
   id                  uuid primary key default gen_random_uuid(),
   slug                text not null unique,
   hebrew_name         text not null default '',
+  hebrew_parent_name  text not null default '',
   civil_name          text not null default '',
   biography           text not null default '',
   death_date          date,
   hebrew_death_date   text not null default '',
+  cover_photo_url     text not null default '',
+  profile_photo_url   text not null default '',
   family_token        text not null unique,
   is_published        boolean not null default false,
   created_at          timestamptz not null default now()
 );
+
+-- Migrations for projects created before banner/profile/parent-name support.
+-- Safe to run on a fresh DB too (no-ops thanks to "if not exists").
+alter table public.memorials
+  add column if not exists cover_photo_url     text not null default '',
+  add column if not exists profile_photo_url   text not null default '',
+  add column if not exists hebrew_parent_name  text not null default '';
 
 create index if not exists memorials_slug_idx on public.memorials (slug);
 create index if not exists memorials_token_idx on public.memorials (family_token);

@@ -1,16 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 
 import { Link } from "@/i18n/navigation";
+import { PhotoManager } from "@/components/PhotoManager";
 
 import {
-  deletePhotoAction,
   saveMemorialAction,
-  type ActionResult,
   type SaveResult,
 } from "@/lib/actions";
+import { FEATURE_PHOTO_GALLERY } from "@/lib/featureFlags";
+import { compressImage } from "@/lib/imageCompression";
 import type { MemorialWithPhotos } from "@/lib/queries";
 
 type Props = {
@@ -26,7 +27,6 @@ type Props = {
 };
 
 const initialSave: SaveResult | null = null;
-const initialDelete: ActionResult | null = null;
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
 /**
@@ -38,8 +38,10 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
   const t = useTranslations("family");
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /** Compressed, validated files ready to upload (replaces input contents). */
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [stagedError, setStagedError] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
 
   // The action wrapper runs inside a React transition (via useActionState),
   // so setState calls here are batched and don't trigger the
@@ -58,9 +60,33 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
     initialSave
   );
 
-  function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // We invoke `saveAction` from a custom onSubmit (so we can swap in
+  // compressed files), not from the form's `action` prop. React requires
+  // such manual dispatches to be wrapped in a transition; otherwise
+  // `savePending` won't update.
+  const [, startTransition] = useTransition();
+
+  async function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    const tooBig = files.find((f) => f.size > MAX_PHOTO_BYTES);
+    if (files.length === 0) {
+      setStagedFiles([]);
+      setStagedError(null);
+      return;
+    }
+    setStagedError(null);
+    setCompressing(true);
+    let compressed: File[];
+    try {
+      compressed = await Promise.all(files.map((f) => compressImage(f)));
+    } catch {
+      compressed = files;
+    } finally {
+      setCompressing(false);
+    }
+    // Compression typically lands well under 10 MB, but a degenerate input
+    // (HEIC on Firefox, 100 MP image, etc.) may bypass it. Validate the
+    // post-compression size as a final guard before the server's hard cap.
+    const tooBig = compressed.find((f) => f.size > MAX_PHOTO_BYTES);
     if (tooBig) {
       setStagedError(
         t("photo_too_large", {
@@ -72,15 +98,31 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
       setStagedFiles([]);
       return;
     }
-    setStagedError(null);
-    setStagedFiles(files);
+    setStagedFiles(compressed);
+  }
+
+  /**
+   * We can't rely on the browser to submit the file input directly because
+   * `stagedFiles` are recompressed/renamed and may differ from what the user
+   * picked. Build FormData manually, replace the photos field with our
+   * compressed copies, and dispatch the action ourselves.
+   */
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (compressing) return;
+    const fd = new FormData(e.currentTarget);
+    fd.delete("photos");
+    for (const f of stagedFiles) fd.append("photos", f);
+    startTransition(() => {
+      saveAction(fd);
+    });
   }
 
   return (
     <div className="space-y-12">
       <PublishBanner memorial={memorial} publicUrl={publicUrl} />
 
-      <form ref={formRef} action={saveAction} className="space-y-7">
+      <form ref={formRef} onSubmit={onSubmit} className="space-y-7">
         <input type="hidden" name="token" value={memorial.family_token} />
 
         {/* Identity */}
@@ -90,17 +132,41 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
           </legend>
 
           {isAdmin ? (
-            <Field
-              label={t("field_hebrew_name_admin")}
-              name="hebrew_name"
-              defaultValue={memorial.hebrew_name}
-              dir="rtl"
-              lang="he"
-              fontHebrew
-              help={t("field_hebrew_name_help")}
-            />
+            <>
+              <Field
+                label={t("field_hebrew_name_admin")}
+                name="hebrew_name"
+                defaultValue={memorial.hebrew_name}
+                dir="rtl"
+                lang="he"
+                fontHebrew
+                help={t("field_hebrew_name_help")}
+              />
+              <Field
+                label={t("field_hebrew_parent_name_admin")}
+                name="hebrew_parent_name"
+                defaultValue={memorial.hebrew_parent_name}
+                dir="rtl"
+                lang="he"
+                fontHebrew
+                help={t("field_hebrew_parent_name_help")}
+              />
+            </>
           ) : (
-            <ReadOnlyHebrewName value={memorial.hebrew_name} />
+            <>
+              <ReadOnlyHebrewField
+                label={t("field_hebrew_name")}
+                value={memorial.hebrew_name}
+                emptyText={t("field_hebrew_name_empty")}
+                helpText={t("field_hebrew_name_locked_help")}
+              />
+              <ReadOnlyHebrewField
+                label={t("field_hebrew_parent_name")}
+                value={memorial.hebrew_parent_name}
+                emptyText={t("field_hebrew_parent_name_empty")}
+                helpText={t("field_hebrew_parent_name_locked_help")}
+              />
+            </>
           )}
           <Field
             label={t("field_civil_name")}
@@ -140,7 +206,10 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
           />
         </fieldset>
 
-        {/* New photos */}
+        {/* New photos. Hidden behind FEATURE_PHOTO_GALLERY while we focus on
+            the banner + portrait flow; flip the flag in lib/featureFlags.ts
+            to bring the multi-photo gallery back. */}
+        {FEATURE_PHOTO_GALLERY ? (
         <fieldset className="space-y-3">
           <legend className="font-serif text-xl">
             {t("section_add_photos")}
@@ -157,7 +226,12 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
             onChange={handleFilesChange}
             className="block w-full rounded-md border border-dashed border-[color:var(--color-line)] bg-[color:var(--color-surface)] p-3 text-sm file:me-3 file:rounded-full file:border-0 file:bg-[color:var(--color-accent-soft)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[color:var(--color-accent)] hover:file:bg-[color:var(--color-line)]"
           />
-          {stagedError ? (
+          {compressing ? (
+            <p className="inline-flex items-center text-sm text-[color:var(--color-ink-soft)]">
+              <Spinner />
+              {t("compressing")}
+            </p>
+          ) : stagedError ? (
             <p className="text-sm text-red-700">{stagedError}</p>
           ) : stagedFiles.length > 0 ? (
             <p className="text-sm text-[color:var(--color-ink-soft)]">
@@ -174,12 +248,13 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
             </p>
           ) : null}
         </fieldset>
+        ) : null}
 
         {/* Submit */}
         <div className="flex flex-wrap items-center gap-4 border-t border-[color:var(--color-line)] pt-6">
           <button
             type="submit"
-            disabled={savePending || Boolean(stagedError)}
+            disabled={savePending || compressing || Boolean(stagedError)}
             className="inline-flex h-10 items-center rounded-full bg-[color:var(--color-ink)] px-5 text-sm font-medium text-white transition hover:bg-[color:var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {savePending ? (
@@ -212,36 +287,17 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
       </form>
 
       {/* Existing photos. Lives OUTSIDE the main form so each delete can be
-          its own form (HTML disallows nested forms). */}
-      <section className="space-y-3">
-        <h2 className="font-serif text-xl">{t("section_current_photos")}</h2>
-        {memorial.photos.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {memorial.photos.map((photo) => (
-              <li
-                key={photo.id}
-                className="group relative overflow-hidden rounded-lg ring-1 ring-[color:var(--color-line)]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.image_url}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-square w-full object-cover"
-                />
-                <DeletePhotoButton
-                  token={memorial.family_token}
-                  photoId={photo.id}
-                />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-[color:var(--color-ink-soft)]">
-            {t("no_photos")}
-          </p>
-        )}
-      </section>
+          its own form (HTML disallows nested forms). Hidden behind the
+          gallery feature flag along with the upload section above. */}
+      {FEATURE_PHOTO_GALLERY ? (
+        <section className="space-y-3">
+          <h2 className="font-serif text-xl">{t("section_current_photos")}</h2>
+          <PhotoManager
+            token={memorial.family_token}
+            photos={memorial.photos}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -289,42 +345,26 @@ function PublishBanner({
   );
 }
 
-function DeletePhotoButton({
-  token,
-  photoId,
+/**
+ * Read-only Hebrew text field for the family view. Used for both
+ * `hebrew_name` and `hebrew_parent_name` — they're both religiously
+ * significant inputs that the family must contact the admin to change.
+ */
+function ReadOnlyHebrewField({
+  label,
+  value,
+  emptyText,
+  helpText,
 }: {
-  token: string;
-  photoId: string;
+  label: string;
+  value: string;
+  emptyText: string;
+  helpText: string;
 }) {
-  const t = useTranslations("family");
-  const [, action, pending] = useActionState(
-    async (_prev: ActionResult | null, fd: FormData) => deletePhotoAction(fd),
-    initialDelete
-  );
-  return (
-    <form
-      action={action}
-      className="absolute inset-x-0 bottom-0 flex justify-end bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition group-hover:opacity-100"
-    >
-      <input type="hidden" name="token" value={token} />
-      <input type="hidden" name="photo_id" value={photoId} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-red-700 hover:bg-white"
-      >
-        {pending ? t("deleting_photo") : t("delete_photo")}
-      </button>
-    </form>
-  );
-}
-
-function ReadOnlyHebrewName({ value }: { value: string }) {
-  const t = useTranslations("family");
   return (
     <div>
       <span className="block text-sm text-[color:var(--color-ink-soft)]">
-        {t("field_hebrew_name")}
+        {label}
       </span>
       <div
         dir="rtl"
@@ -333,12 +373,12 @@ function ReadOnlyHebrewName({ value }: { value: string }) {
       >
         {value || (
           <span className="text-sm text-[color:var(--color-muted)]" dir="ltr">
-            {t("field_hebrew_name_empty")}
+            {emptyText}
           </span>
         )}
       </div>
       <span className="mt-1 block text-xs text-[color:var(--color-muted)]">
-        {t("field_hebrew_name_locked_help")}
+        {helpText}
       </span>
     </div>
   );
