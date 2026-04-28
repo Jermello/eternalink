@@ -1,4 +1,11 @@
 {
+  "date_picker": {
+    "after_sunset": "Décès après la tombée du jour (le jour hébraïque commence la veille au soir)",
+    "manual_mode": "Saisir la date hébraïque manuellement",
+    "auto_mode": "Calculer depuis la date civile",
+    "manual_placeholder": "ex. ה׳ תשרי תשפ״ה",
+    "preview_empty": "Choisissez une date civile pour voir l’équivalent hébraïque."
+  },
   "common": {
     "back_home": "Retour à l'accueil",
     "loading": "Chargement…",
@@ -121,6 +128,10 @@
     "field_hebrew_parent_name_help": "Père ou mère — les deux conviennent. Combiné au nom du défunt pour former « [nom] בן [parent] ».",
     "field_hebrew_parent_name_locked_help": "Combiné au nom hébraïque pour former le nom de prière. Pour le modifier, contactez-nous.",
     "field_hebrew_parent_name_empty": "Pas encore défini — contactez-nous.",
+    "field_gender": "Genre (admin)",
+    "field_gender_help": "Détermine si le nom de prière utilise בן (fils de) ou בת (fille de).",
+    "field_gender_male": "Homme (בן)",
+    "field_gender_female": "Femme (בת)",
     "field_civil_name": "Nom civil",
     "field_death_date": "Date de décès",
     "field_hebrew_death_date": "Date hébraïque",
@@ -169,6 +180,10 @@
       "hebrew_parent_name": "Nom hébraïque du parent",
       "hebrew_parent_placeholder": "משה",
       "hebrew_parent_help": "Père ou mère — les deux conviennent. Combiné en « [nom] בן [parent] » pour la lecture du Psaume 119.",
+      "gender": "Genre",
+      "gender_male": "Homme (בן)",
+      "gender_female": "Femme (בת)",
+      "gender_help": "Détermine si le nom de prière utilise בן (fils de) ou בת (fille de) devant le nom du parent.",
       "submit": "Créer le mémorial",
       "creating": "Création…"
     },

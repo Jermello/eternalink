@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useRef, useState, useTransition } from "react";
 
 import { Link } from "@/i18n/navigation";
+import { HebrewDatePicker } from "@/components/HebrewDatePicker";
 import { PhotoManager } from "@/components/PhotoManager";
 
 import {
@@ -151,6 +152,13 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
                 fontHebrew
                 help={t("field_hebrew_parent_name_help")}
               />
+              <GenderRadio
+                label={t("field_gender")}
+                helpText={t("field_gender_help")}
+                maleLabel={t("field_gender_male")}
+                femaleLabel={t("field_gender_female")}
+                defaultValue={memorial.gender}
+              />
             </>
           ) : (
             <>
@@ -174,22 +182,14 @@ export function EditForm({ memorial, publicUrl, isAdmin = false }: Props) {
             defaultValue={memorial.civil_name}
           />
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field
-              label={t("field_death_date")}
-              name="death_date"
-              type="date"
-              defaultValue={memorial.death_date ?? ""}
-            />
-            <Field
-              label={t("field_hebrew_death_date")}
-              name="hebrew_death_date"
-              defaultValue={memorial.hebrew_death_date}
-              dir="rtl"
-              lang="he"
-              fontHebrew
-            />
-          </div>
+          <HebrewDatePicker
+            gregorianName="death_date"
+            hebrewName="hebrew_death_date"
+            defaultGregorian={memorial.death_date ?? ""}
+            defaultHebrew={memorial.hebrew_death_date}
+            gregorianLabel={t("field_death_date")}
+            hebrewLabel={t("field_hebrew_death_date")}
+          />
         </fieldset>
 
         {/* Biography */}
@@ -381,6 +381,59 @@ function ReadOnlyHebrewField({
         {helpText}
       </span>
     </div>
+  );
+}
+
+/**
+ * Admin-only radio that picks the liturgical gender (drives בן/בת in
+ * the prayer name). We render two radios (rather than a checkbox) so the
+ * choice is unambiguous — "unchecked" was confusingly meaningful when
+ * we tried a single checkbox in early reviews.
+ */
+function GenderRadio({
+  label,
+  helpText,
+  maleLabel,
+  femaleLabel,
+  defaultValue,
+}: {
+  label: string;
+  helpText: string;
+  maleLabel: string;
+  femaleLabel: string;
+  defaultValue: "male" | "female";
+}) {
+  return (
+    <fieldset className="block">
+      <legend className="block text-sm text-[color:var(--color-ink-soft)]">
+        {label}
+      </legend>
+      <div className="mt-2 flex flex-wrap gap-4">
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input
+            type="radio"
+            name="gender"
+            value="male"
+            defaultChecked={defaultValue !== "female"}
+            className="h-4 w-4 accent-[color:var(--color-accent)]"
+          />
+          <span>{maleLabel}</span>
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input
+            type="radio"
+            name="gender"
+            value="female"
+            defaultChecked={defaultValue === "female"}
+            className="h-4 w-4 accent-[color:var(--color-accent)]"
+          />
+          <span>{femaleLabel}</span>
+        </label>
+      </div>
+      <span className="mt-1 block text-xs text-[color:var(--color-muted)]">
+        {helpText}
+      </span>
+    </fieldset>
   );
 }
 

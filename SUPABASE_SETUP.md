@@ -64,6 +64,10 @@ create table if not exists public.memorials (
   slug                text not null unique,
   hebrew_name         text not null default '',
   hebrew_parent_name  text not null default '',
+  -- 'male' → renders "<name> בן <parent>" in the prayer
+  -- 'female' → renders "<name> בת <parent>"
+  gender              text not null default 'male'
+                      check (gender in ('male', 'female')),
   civil_name          text not null default '',
   biography           text not null default '',
   death_date          date,
@@ -75,12 +79,21 @@ create table if not exists public.memorials (
   created_at          timestamptz not null default now()
 );
 
--- Migrations for projects created before banner/profile/parent-name support.
+-- Migrations for projects created before banner/profile/parent-name/gender support.
 -- Safe to run on a fresh DB too (no-ops thanks to "if not exists").
 alter table public.memorials
   add column if not exists cover_photo_url     text not null default '',
   add column if not exists profile_photo_url   text not null default '',
-  add column if not exists hebrew_parent_name  text not null default '';
+  add column if not exists hebrew_parent_name  text not null default '',
+  add column if not exists gender              text not null default 'male';
+
+-- Lock down legal values for `gender`. Existing rows are already 'male' (the
+-- default), so adding the constraint is safe. Drop+recreate keeps the
+-- migration idempotent.
+alter table public.memorials drop constraint if exists memorials_gender_check;
+alter table public.memorials
+  add constraint memorials_gender_check
+  check (gender in ('male', 'female'));
 
 create index if not exists memorials_slug_idx on public.memorials (slug);
 create index if not exists memorials_token_idx on public.memorials (family_token);

@@ -4,6 +4,13 @@
     "loading": "Loading…",
     "language": "Language"
   },
+  "date_picker": {
+    "after_sunset": "Death after sunset (Hebrew day starts the evening before)",
+    "manual_mode": "Type Hebrew date manually",
+    "auto_mode": "Auto-derive from civil date",
+    "manual_placeholder": "e.g. ה׳ תשרי תשפ״ה",
+    "preview_empty": "Pick a civil date to see the Hebrew equivalent."
+  },
   "metadata": {
     "default_title": "EternaLink — Digital memorials with Psalm 119",
     "default_description": "A respectful digital memorial linked to a physical QR plaque. Each page reads the verses of Psalm 119 that match the deceased's Hebrew name."
@@ -121,6 +128,10 @@
     "field_hebrew_parent_name_help": "Mother or father — both work. Combined with the deceased's name to form \"[name] בן [parent]\".",
     "field_hebrew_parent_name_locked_help": "Combined with the Hebrew name to form the prayer name. To change it, please contact us.",
     "field_hebrew_parent_name_empty": "Not set yet — please contact us.",
+    "field_gender": "Gender (admin-only)",
+    "field_gender_help": "Drives whether the prayer name uses בן (son of) or בת (daughter of).",
+    "field_gender_male": "Man (בן)",
+    "field_gender_female": "Woman (בת)",
     "field_civil_name": "Civil name",
     "field_death_date": "Date of passing",
     "field_hebrew_death_date": "Hebrew date",
@@ -169,6 +180,10 @@
       "hebrew_parent_name": "Parent's Hebrew name",
       "hebrew_parent_placeholder": "משה",
       "hebrew_parent_help": "Father or mother — either is fine. Combined as \"[name] בן [parent]\" for the Psalm 119 reading.",
+      "gender": "Gender",
+      "gender_male": "Man (בן)",
+      "gender_female": "Woman (בת)",
+      "gender_help": "Determines whether the prayer name uses בן (son of) or בת (daughter of) before the parent's name.",
       "submit": "Create memorial",
       "creating": "Creating…"
     },

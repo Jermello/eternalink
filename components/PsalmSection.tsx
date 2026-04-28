@@ -3,13 +3,19 @@ import { getTranslations } from "next-intl/server";
 import {
   buildPrayerName,
   getLiturgicalSegments,
+  type LiturgicalGender,
   type PsalmSection,
 } from "@/lib/psalm119";
 
 type Props = {
   hebrewName: string;
-  /** Parent's Hebrew name; used to compose "<name> בן <parent>". */
+  /** Parent's Hebrew name; used to compose "<name> בן/בת <parent>". */
   hebrewParentName?: string;
+  /**
+   * Liturgical gender of the deceased. "male" → בן, "female" → בת.
+   * Defaults to "male" when omitted (mirrors the DB default).
+   */
+  gender?: LiturgicalGender;
 };
 
 /**
@@ -22,11 +28,19 @@ type Props = {
  * The verses themselves are *always* in Hebrew (sacred liturgical text).
  * Only the surrounding labels (heading, "verse N") are translated.
  */
-export async function PsalmReading({ hebrewName, hebrewParentName }: Props) {
-  const segments = getLiturgicalSegments({ hebrewName, hebrewParentName });
+export async function PsalmReading({
+  hebrewName,
+  hebrewParentName,
+  gender,
+}: Props) {
+  const segments = getLiturgicalSegments({
+    hebrewName,
+    hebrewParentName,
+    gender,
+  });
   if (!segments.length) return null;
 
-  const prayerName = buildPrayerName({ hebrewName, hebrewParentName });
+  const prayerName = buildPrayerName({ hebrewName, hebrewParentName, gender });
   const t = await getTranslations("memorial");
 
   return (

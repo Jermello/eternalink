@@ -117,6 +117,7 @@ export default async function PublicMemorialPage({
             <PsalmReading
               hebrewName={memorial.hebrew_name}
               hebrewParentName={memorial.hebrew_parent_name}
+              gender={memorial.gender}
             />
           </div>
         ) : null}

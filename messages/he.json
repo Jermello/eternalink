@@ -1,4 +1,11 @@
 {
+  "date_picker": {
+    "after_sunset": "פטירה לאחר השקיעה (היום העברי מתחיל בערב הקודם)",
+    "manual_mode": "הקלדת תאריך עברי ידנית",
+    "auto_mode": "חישוב אוטומטי מהתאריך הלועזי",
+    "manual_placeholder": "לדוגמה: ה׳ תשרי תשפ״ה",
+    "preview_empty": "בחרו תאריך לועזי כדי לראות את ההקבלה העברית."
+  },
   "common": {
     "back_home": "חזרה לעמוד הבית",
     "loading": "טוען…",
@@ -121,6 +128,10 @@
     "field_hebrew_parent_name_help": "אבא או אמא — שניהם בסדר. מצורף לשם הנפטר ליצירת ״[שם] בן [הורה]״.",
     "field_hebrew_parent_name_locked_help": "מצורף לשם העברי ליצירת שם התפילה. לשינוי, אנא צרו קשר.",
     "field_hebrew_parent_name_empty": "טרם הוגדר — אנא צרו קשר.",
+    "field_gender": "מגדר (מנהל בלבד)",
+    "field_gender_help": "קובע האם שם התפילה משתמש בבן או בבת לפני שם ההורה.",
+    "field_gender_male": "גבר (בן)",
+    "field_gender_female": "אישה (בת)",
     "field_civil_name": "שם לועזי",
     "field_death_date": "תאריך פטירה",
     "field_hebrew_death_date": "תאריך עברי",
@@ -169,6 +180,10 @@
       "hebrew_parent_name": "שם עברי של ההורה",
       "hebrew_parent_placeholder": "משה",
       "hebrew_parent_help": "אבא או אמא — שניהם בסדר. מצורף ל״[שם] בן [הורה]״ עבור קריאת תהילים קי״ט.",
+      "gender": "מגדר",
+      "gender_male": "גבר (בן)",
+      "gender_female": "אישה (בת)",
+      "gender_help": "קובע האם שם התפילה משתמש בבן (בן של) או בבת (בת של) לפני שם ההורה.",
       "submit": "יצירת אנדרטה",
       "creating": "יוצר…"
     },

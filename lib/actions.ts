@@ -14,8 +14,18 @@ import {
   requireAdmin,
   verifyPassword,
 } from "./auth";
-import { getServiceSupabase, STORAGE_BUCKET } from "./supabase";
+import { type Gender, getServiceSupabase, STORAGE_BUCKET } from "./supabase";
 import { generateFamilyToken, generateSlug } from "./utils";
+
+/**
+ * Coerce arbitrary form input into a valid `Gender`. We default to
+ * "male" because that's the historical (pre-feature) value and matches
+ * the DB default — a missing or unexpected payload should not silently
+ * flip a record's gender.
+ */
+function parseGender(raw: FormDataEntryValue | null): Gender {
+  return raw === "female" ? "female" : "male";
+}
 
 /**
  * Build a locale-prefixed href for use with `redirect()`. We compose this
@@ -99,6 +109,15 @@ export async function createMemorialAction(formData: FormData) {
   const hebrewParentName = String(
     formData.get("hebrew_parent_name") ?? ""
   ).trim();
+  const gender = parseGender(formData.get("gender"));
+  // Death dates are optional at creation — the family can fill them
+  // later from the edit link. `death_date` is a YYYY-MM-DD string from
+  // <input type="date">; we coerce empty to null so Postgres stores
+  // NULL instead of a malformed string.
+  const deathDate = String(formData.get("death_date") ?? "").trim() || null;
+  const hebrewDeathDate = String(
+    formData.get("hebrew_death_date") ?? ""
+  ).trim();
 
   if (!civilName && !hebrewName) {
     throw new Error("Provide at least a civil or Hebrew name.");
@@ -112,6 +131,9 @@ export async function createMemorialAction(formData: FormData) {
     civil_name: civilName,
     hebrew_name: hebrewName,
     hebrew_parent_name: hebrewParentName,
+    gender,
+    death_date: deathDate,
+    hebrew_death_date: hebrewDeathDate,
     family_token,
     is_published: false,
   });
@@ -256,6 +278,12 @@ export async function saveMemorialAction(
       updates.hebrew_parent_name = String(
         formData.get("hebrew_parent_name") ?? ""
       ).trim();
+      // `gender` is admin-only — it's part of the religious record, not
+      // a self-service field. Only update if the form actually sent it
+      // (so partial payloads don't accidentally reset to "male").
+      if (formData.has("gender")) {
+        updates.gender = parseGender(formData.get("gender"));
+      }
     }
 
     const { data: memorial, error: updateErr } = await sb

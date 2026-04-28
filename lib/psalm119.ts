@@ -407,60 +407,80 @@ export function getPsalmReading(hebrewName: string): PsalmSection[] {
   return extractHebrewLetters(hebrewName).map((letter) => PSALM_119[letter]);
 }
 
-/** Connector ("son of") used between the deceased's and the parent's name. */
+/** Connector "son of", used for male deceased. */
 export const HEBREW_BEN = "בן";
+/** Connector "daughter of", used for female deceased. */
+export const HEBREW_BAT = "בת";
 /** "Soul" — its four letters close every traditional reading. */
 export const HEBREW_NESHAMAH = "נשמה";
+
+/**
+ * Liturgical gender of the deceased — drives whether the prayer name
+ * uses בן (son) or בת (daughter). Mirrors the `gender` column on the
+ * `memorials` table.
+ */
+export type LiturgicalGender = "male" | "female";
+
+/**
+ * Hebrew connector word for the given gender. Defaults to בן if no
+ * gender is provided so legacy/un-set rows still render meaningfully.
+ */
+export function hebrewConnector(gender?: LiturgicalGender): string {
+  return gender === "female" ? HEBREW_BAT : HEBREW_BEN;
+}
 
 /**
  * Build the full liturgical name used to derive the Psalm 119 reading,
  * following the tradition of reciting the letters of:
  *
- *   <hebrewName> בן <hebrewParentName> נשמה
+ *   <hebrewName> בן/בת <hebrewParentName> נשמה
  *
- *  - We always use בן ("son of") regardless of the deceased's actual
- *    gender. Tracking gender purely to switch בן/בת would add a field
- *    families have to set correctly under stress, with no liturgical
- *    benefit for our common case. If a customer ever needs בת, we can
- *    promote this to a configurable.
+ *  - בן is used for males, בת for females; defaults to בן when gender
+ *    is unknown. Both connectors share the same letters Bet + Nun/Tav,
+ *    but switching the second letter changes the resulting Psalm
+ *    sections, which is what makes the gender meaningful liturgically.
  *  - נשמה is appended automatically when there is at least a name; its
  *    four letters constitute the closing reading.
- *  - With both fields empty we return "" so callers can hide the section
- *    cleanly.
+ *  - With both name fields empty we return "" so callers can hide the
+ *    section cleanly.
  */
 export function buildLiturgicalName({
   hebrewName,
   hebrewParentName,
+  gender,
 }: {
   hebrewName: string;
   hebrewParentName?: string;
+  gender?: LiturgicalGender;
 }): string {
   const name = (hebrewName ?? "").trim();
   const parent = (hebrewParentName ?? "").trim();
   if (!name) return "";
   const parts: string[] = [name];
-  if (parent) parts.push(HEBREW_BEN, parent);
+  if (parent) parts.push(hebrewConnector(gender), parent);
   parts.push(HEBREW_NESHAMAH);
   return parts.join(" ");
 }
 
 /**
  * Build the prayer-name shown in headings (the person being prayed for):
- * "<name>" or "<name> בן <parent>". Unlike `buildLiturgicalName`, this
+ * "<name>" or "<name> בן/בת <parent>". Unlike `buildLiturgicalName`, this
  * does NOT include נשמה — neshamah is the closing reading, not part of
  * the person's identity.
  */
 export function buildPrayerName({
   hebrewName,
   hebrewParentName,
+  gender,
 }: {
   hebrewName: string;
   hebrewParentName?: string;
+  gender?: LiturgicalGender;
 }): string {
   const name = (hebrewName ?? "").trim();
   const parent = (hebrewParentName ?? "").trim();
   if (!name) return "";
-  return parent ? `${name} ${HEBREW_BEN} ${parent}` : name;
+  return parent ? `${name} ${hebrewConnector(gender)} ${parent}` : name;
 }
 
 /**
@@ -490,22 +510,26 @@ export type LiturgicalSegment = {
 export function getLiturgicalSegments({
   hebrewName,
   hebrewParentName,
+  gender,
 }: {
   hebrewName: string;
   hebrewParentName?: string;
+  gender?: LiturgicalGender;
 }): LiturgicalSegment[] {
   const name = (hebrewName ?? "").trim();
   const parent = (hebrewParentName ?? "").trim();
   if (!name) return [];
+
+  const connector = hebrewConnector(gender);
 
   const segments: LiturgicalSegment[] = [
     { key: "name", text: name, sections: getPsalmReading(name) },
   ];
   if (parent) {
     segments.push({
-      key: "ben",
-      text: HEBREW_BEN,
-      sections: getPsalmReading(HEBREW_BEN),
+      key: "connector",
+      text: connector,
+      sections: getPsalmReading(connector),
     });
     segments.push({
       key: "parent",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { DeleteMemorialButton } from "@/components/DeleteMemorialButton";
+import { HebrewDatePicker } from "@/components/HebrewDatePicker";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { RegenerateTokenButton } from "@/components/RegenerateTokenButton";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -188,6 +189,7 @@ export default async function AdminPage({
 
 async function CreateMemorialForm() {
   const t = await getTranslations("admin.create");
+  const tFamily = await getTranslations("family");
   return (
     <form
       action={createMemorialAction}
@@ -236,6 +238,45 @@ async function CreateMemorialForm() {
             {t("hebrew_parent_help")}
           </span>
         </label>
+
+        <fieldset className="block sm:col-span-2">
+          <legend className="text-sm text-[color:var(--color-ink-soft)]">
+            {t("gender")}
+          </legend>
+          <div className="mt-2 flex flex-wrap gap-4">
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="gender"
+                value="male"
+                defaultChecked
+                className="h-4 w-4 accent-[color:var(--color-accent)]"
+              />
+              <span>{t("gender_male")}</span>
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="gender"
+                value="female"
+                className="h-4 w-4 accent-[color:var(--color-accent)]"
+              />
+              <span>{t("gender_female")}</span>
+            </label>
+          </div>
+          <span className="mt-1 block text-xs text-[color:var(--color-muted)]">
+            {t("gender_help")}
+          </span>
+        </fieldset>
+
+        <div className="block sm:col-span-2">
+          <HebrewDatePicker
+            gregorianName="death_date"
+            hebrewName="hebrew_death_date"
+            gregorianLabel={tFamily("field_death_date")}
+            hebrewLabel={tFamily("field_hebrew_death_date")}
+          />
+        </div>
       </div>
 
       <div className="mt-4">

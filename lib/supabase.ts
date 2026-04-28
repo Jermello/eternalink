@@ -71,6 +71,15 @@ export function getServiceSupabase(): SupabaseClient | null {
 // Domain types — mirror the SQL schema from SUPABASE_SETUP.md.
 // ───────────────────────────────────────────────────────────────────
 
+/**
+ * Liturgical gender of the deceased. Drives whether we display "בן"
+ * (son of) or "בת" (daughter of) between the deceased's name and the
+ * parent's name in the Psalm 119 reading. Stored in the database as a
+ * plain text column with a CHECK constraint so other values can't slip
+ * in.
+ */
+export type Gender = "male" | "female";
+
 export type Memorial = {
   id: string;
   slug: string;
@@ -82,6 +91,11 @@ export type Memorial = {
    * traditional name "<name> בן <parent>" used for the reading.
    */
   hebrew_parent_name: string;
+  /**
+   * Drives the בן/בת choice in the prayer name. Defaults to "male" for
+   * historical rows; admins can flip to "female" at create or edit time.
+   */
+  gender: Gender;
   civil_name: string;
   biography: string;
   death_date: string | null;
